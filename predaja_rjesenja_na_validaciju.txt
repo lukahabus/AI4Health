@@ -1,0 +1,31 @@
+Poštovani natjecatelji,
+
+prediktivna rješenja za 1a zadatak predaju se na validaciju putem share putanje vašeg tima:
+\\fs-spe\homes$\username_tima
+
+(npr. ako je login na SPE eval01 ili eval02, tada je username_tima = eval).
+Do share putanje možete pristupiti isključivo iz SPE okruženja. Servis za validaciju automatski preuzima .csv datoteku s putanje:
+\\fs-spe\homes$\username_tima\
+
+Validacija rješenja:
+Maksimalno 10 validacija po timu (rezultati se prikazuju na leaderboardu)
+Nazivi datoteka: 1.csv, 2.csv, ..., 10.csv
+Validacija se pokreće predajom CSV datoteke na share putanju
+Separator mora biti zarez ,
+Obavezne kolone (redoslijed je bitan): row_id,label,score
+row_id – prema uputama iz zadatka
+label – cijeli broj: 0 ili 1
+score – decimalni broj (probabilistički output)
+primjer se nalazi u datoteci nasumicni_1.csv (u prilogu)
+Prva validacija predaje se kao:
+\\fs-spe\homes$\username_tima\1.csv
+
+Ako separator nije ispravan, rezultat može biti pogrešno očitan.
+
+Napomena:
+Prije predaje možete provjeriti ispravnost rješenja koristeći datoteku nasumicni_1.csv i skriptu compare_submission_with_template.py (oba u prilogu emaila).
+
+Za sva pitanja stojimo Vam na raspolaganju putem foruma.
+
+Lijep pozdrav,
+AI4Health.Cro tehnički tim 

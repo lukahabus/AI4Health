@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AdhereDM — pitch | AI4Health.Cro 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #060b1a;
+    --bg-2: #0a1530;
+    --ink: #e9eef9;
+    --muted: #8aa0c5;
+    --primary: #4ea1ff;
+    --primary-2: #1f78d1;
+    --teal: #2ad6c2;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --panel: rgba(255,255,255,0.04);
+    --panel-2: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.10);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; overflow: hidden; }
+  body {
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: radial-gradient(1200px 700px at 75% -10%, #143b78 0%, transparent 60%),
+                radial-gradient(900px 600px at 0% 110%, #0a3a4d 0%, transparent 55%),
+                var(--bg);
+    color: var(--ink);
+    height: 100vh;
+    width: 100vw;
+  }
+
+  .deck {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 56px 80px 80px;
+    display: none;
+    flex-direction: column;
+    animation: fadeIn .35s ease;
+  }
+  .slide.active { display: flex; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== Top bar / brand on slide ===== */
+  .slide-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .brand .logo {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--teal), var(--primary));
+    display: grid; place-items: center; color: #021; font-weight: 800;
+  }
+  .brand .name { font-weight: 700; }
+  .brand .sub { color: var(--muted); font-size: 11px; letter-spacing: .8px; text-transform: uppercase; }
+
+  .slide-tag {
+    color: var(--muted); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+  }
+
+  /* ===== Title slide ===== */
+  .title-hero {
+    margin: auto;
+    max-width: 1100px;
+    text-align: center;
+  }
+  .title-hero h1 {
+    font-size: 72px; line-height: 1.05; margin: 0 0 24px;
+    background: linear-gradient(120deg, #fff 30%, #2ad6c2 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1.5px;
+  }
+  .title-hero .lead {
+    font-size: 22px; color: var(--muted); margin-bottom: 30px; line-height: 1.45;
+  }
+  .partners { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; }
+  .partner {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 10px 18px; border-radius: 999px;
+    font-size: 12px; color: var(--muted);
+  }
+
+  /* ===== Headings ===== */
+  h2.slide-title {
+    font-size: 40px; margin: 0 0 12px; line-height: 1.1; letter-spacing: -1px;
+  }
+  h2.slide-title .accent {
+    background: linear-gradient(120deg, var(--teal), var(--primary));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .lead { color: var(--muted); font-size: 17px; max-width: 1000px; line-height: 1.5; }
+
+  /* ===== Grids ===== */
+  .grid { display: grid; gap: 20px; flex: 1; min-height: 0; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    backdrop-filter: blur(10px);
+    display: flex; flex-direction: column;
+  }
+  .card.gradient {
+    background: linear-gradient(160deg, rgba(78,161,255,0.18), rgba(42,214,194,0.10));
+    border-color: rgba(78,161,255,0.30);
+  }
+  .card.glow {
+    background: linear-gradient(160deg, rgba(52,211,153,0.18), rgba(42,214,194,0.06));
+    border-color: rgba(52,211,153,0.35);
+  }
+  .card .ic {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: rgba(78,161,255,0.18); color: var(--primary);
+    display: grid; place-items: center;
+    margin-bottom: 12px;
+  }
+  .card h3 {
+    font-size: 18px; margin: 0 0 6px;
+  }
+  .card p {
+    margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55;
+  }
+  .card ul {
+    margin: 8px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px;
+  }
+  .card ul li { margin-bottom: 5px; }
+
+  /* ===== Big numbers ===== */
+  .stat { text-align: center; }
+  .stat .num {
+    font-size: 64px; font-weight: 800; letter-spacing: -2px; line-height: 1;
+    background: linear-gradient(180deg, #fff, #8aa0c5);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .stat .lab { color: var(--muted); margin-top: 8px; font-size: 13px; }
+  .stat.danger .num { background: linear-gradient(180deg, #fff, var(--red)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .stat.warn .num { background: linear-gradient(180deg, #fff, var(--amber)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .stat.good .num { background: linear-gradient(180deg, #fff, var(--green)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+  /* ===== Footer ===== */
+  .slide-footer {
+    position: absolute;
+    bottom: 18px; left: 80px; right: 80px;
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--muted); font-size: 11px; letter-spacing: .8px;
+  }
+
+  /* ===== Progress / nav ===== */
+  .progress {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    height: 3px; background: rgba(255,255,255,0.05); z-index: 50;
+  }
+  .progress > i {
+    display: block; height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--teal));
+    width: 0; transition: width .3s ease;
+  }
+  .nav-controls {
+    position: fixed; bottom: 14px; right: 24px;
+    display: flex; align-items: center; gap: 10px;
+    z-index: 60;
+  }
+  .nav-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--ink); display: grid; place-items: center; cursor: pointer;
+  }
+  .nav-btn:hover { background: var(--panel); }
+  .nav-counter { font-size: 12px; color: var(--muted); padding: 0 10px; }
+
+  /* ===== Pills / badges ===== */
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 999px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    font-size: 11px; color: var(--muted);
+  }
+  .pill.green { background: rgba(52,211,153,0.12); color: var(--green); border-color: rgba(52,211,153,0.30); }
+  .pill.amber { background: rgba(251,191,36,0.12); color: var(--amber); border-color: rgba(251,191,36,0.30); }
+  .pill.red   { background: rgba(248,113,113,0.12); color: var(--red); border-color: rgba(248,113,113,0.30); }
+  .pill.blue  { background: rgba(78,161,255,0.12); color: var(--primary); border-color: rgba(78,161,255,0.30); }
+  .pill.teal  { background: rgba(42,214,194,0.12); color: var(--teal); border-color: rgba(42,214,194,0.30); }
+
+  /* ===== Tables ===== */
+  table.t {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  table.t th, table.t td {
+    padding: 10px 12px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  table.t th { color: var(--muted); font-weight: 500; font-size: 11px; letter-spacing: .8px; text-transform: uppercase; }
+
+  /* ===== Specific layouts ===== */
+  .arch {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    align-items: center;
+  }
+  .arch .box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .arch .box b { color: var(--ink); display: block; margin-bottom: 4px; font-size: 13px; }
+  .arch .arrow { text-align: center; font-size: 20px; color: var(--muted); }
+
+  .timeline {
+    position: relative;
+    padding-left: 40px;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute; left: 14px; top: 0; bottom: 0;
+    width: 2px; background: var(--border);
+  }
+  .timeline .step {
+    position: relative;
+    padding: 10px 0 16px;
+  }
+  .timeline .step::before {
+    content: ""; position: absolute; left: -32px; top: 14px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 0 4px rgba(78,161,255,0.20);
+  }
+  .timeline .step h4 { margin: 0 0 4px; font-size: 14px; }
+  .timeline .step p  { margin: 0; color: var(--muted); font-size: 12px; }
+
+  .roi {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .roi .b {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .roi .v { font-size: 28px; font-weight: 700; }
+
+  /* Mock screenshot frame */
+  .mock {
+    background: linear-gradient(180deg, #0e1b3a, #0a142b);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    color: var(--ink);
+    font-size: 11px;
+  }
+  .mock .header {
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px; margin-bottom: 10px;
+  }
+  .mock .header .d { width: 9px; height: 9px; border-radius: 50%; background: #f87171; }
+  .mock .header .d:nth-child(2) { background: #fbbf24; }
+  .mock .header .d:nth-child(3) { background: #34d399; }
+  .mock .header .url { margin-left: 12px; color: var(--muted); }
+
+  /* Fix sizes */
+  .canvas-wrap { position: relative; flex: 1; min-height: 0; }
+  canvas { max-height: 100%; }
+
+  /* Hide cursor */
+  .help-key {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 22px; padding: 0 6px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 5px; font-family: "JetBrains Mono", monospace; font-size: 11px;
+  }
+
+  .video-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(120deg, var(--primary), var(--teal));
+    color: #022; padding: 10px 18px; border-radius: 999px;
+    font-weight: 700; font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ============ SLIDE 1: Title ============ -->
+  <section class="slide active">
+    <div class="slide-top">
+      <div class="brand">
+        <div class="logo">A+</div>
+        <div>
+          <div class="name">AdhereDM</div>
+          <div class="sub">AI4Health.Cro · Inovacijski izazov 2026</div>
+        </div>
+      </div>
+      <div class="slide-tag">Pitch / Poslovna evaluacija · 2.b</div>
+    </div>
+
+    <div class="title-hero">
+      <h1>Adherencija nije pitanje volje.<br/>To je pitanje sustava.</h1>
+      <p class="lead">
+        Kliničko-prediktivni sustav koji <b>liječnicima obiteljske medicine</b> u Hrvatskoj
+        u stvarnom vremenu pokazuje koji je pacijent s dijabetesom tipa 2
+        rizičan za prekid terapije — i konkretno predlaže <b>što učiniti danas</b>.
+      </p>
+      <div class="partners">
+        <div class="partner">AI4Health.Cro EDIH</div>
+        <div class="partner">Premium partner: AstraZeneca</div>
+        <div class="partner">Standard partner: Novo Nordisk Hrvatska</div>
+        <div class="partner">U suradnji s HZJZ / OMOP CDM</div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Tim · AI4Health.Cro 2026</span>
+      <span>Pritisnite <span class="help-key">→</span> za sljedeći slajd</span>
+    </div>
+  </section>
+
+  <!-- ============ SLIDE 2: Problem ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Problem</div></div></div>
+      <div class="slide-tag">01 · Zašto?</div>
+    </div>
+
+    <h2 class="slide-title">U Hrvatskoj <span class="accent">409.000</span> osoba živi s dijabetesom.</h2>
+    <p class="lead">Svaki <b>treći</b> ne uzima terapiju kako je propisano. To nije statistika — to su izgubljeni vidovi, infarkti, amputacije, hospitalizacije.</p>
+
+    <div class="grid grid-4" style="margin-top: 24px">
+      <div class="card stat danger">
+        <div class="num">44%</div>
+        <div class="lab">odraslih s T2DM <b>ne pridržava</b> propisanu terapiju</div>
+      </div>
+      <div class="card stat warn">
+        <div class="num">+35%</div>
+        <div class="lab">veći rizik <b>hospitalizacije</b> kod neadherentnih</div>
+      </div>
+      <div class="card stat danger">
+        <div class="num">+49%</div>
+        <div class="lab">veći rizik <b>3P-MACE</b> događaja (KV smrt, IM, moždani udar)</div>
+      </div>
+      <div class="card stat warn">
+        <div class="num">193 mlrd $</div>
+        <div class="lab">godišnji trošak neadherencije za <b>EU sustav</b></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px; flex:none">
+      <p style="font-size:14px; color:var(--ink)">
+        <b>Liječnici obiteljske medicine</b> imaju 7 minuta po pacijentu i nemaju alat koji im operativno govori
+        <i>tko od njihovih T2DM pacijenata je <b>upravo sada</b> rizičan</i> i <i>što napraviti u tih 7 minuta</i>.
+        Današnji ciklus je reaktivan — vidimo problem tek kad je HbA1c već dvocifren.
+      </p>
+    </div>
+
+    <div class="slide-footer"><span>Izvor: AI4Health.Cro kickoff 2026, IDF Diabetes Atlas, Truveta 2024</span><span>2 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 3: Solution overview ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Naše rješenje</div></div></div>
+      <div class="slide-tag">02 · Što gradimo?</div>
+    </div>
+
+    <h2 class="slide-title"><span class="accent">Predict → Explain → Intervene → Measure.</span></h2>
+    <p class="lead">Cijeli ciklus integriran u jednu pristupačnu web-aplikaciju za liječnika obiteljske medicine.</p>
+
+    <div class="grid grid-4" style="margin-top: 24px">
+      <div class="card">
+        <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <h3>Predict</h3>
+        <p>XGBoost model nad OMOP CDM značajkama predviđa PDC&lt;0.8 u idućih 12 mj.</p>
+        <span class="pill green" style="margin-top:8px">MCC 0.541 · AUC 0.84</span>
+      </div>
+      <div class="card">
+        <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+        <h3>Explain</h3>
+        <p>SHAP po pacijentu: <i>"zašto baš ovaj pacijent, baš sad"</i>. Counterfactuals: <i>"što ako promijenim terapiju?"</i></p>
+        <span class="pill blue" style="margin-top:8px">Trustworthy AI</span>
+      </div>
+      <div class="card">
+        <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <h3>Intervene</h3>
+        <p>6 standardiziranih, kombinabilnih intervencija. Kombo se predlaže iz <b>profila rizika</b>.</p>
+        <span class="pill teal" style="margin-top:8px">Klinički validirano</span>
+      </div>
+      <div class="card">
+        <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg></div>
+        <h3>Measure</h3>
+        <p>PDC iz e-recepta, HbA1c, PROM. <b>Closed-loop</b>: učimo iz svake intervencije.</p>
+        <span class="pill amber" style="margin-top:8px">Real-world evidence</span>
+      </div>
+    </div>
+
+    <div class="card gradient" style="margin-top:18px; flex:none">
+      <p style="font-size:14px; color:var(--ink)">
+        <b>Ključna razlika:</b> postojeća rješenja na tržištu uglavnom prate adherenciju <i>retroaktivno</i> (dashboard).
+        AdhereDM je <b>prospektivni</b> — daje liječniku <i>ranu zvonjavu</i> i <i>nudi konkretan plan u kontekstu OMOP-a / CEZIH-a</i>.
+      </p>
+    </div>
+
+    <div class="slide-footer"><span>End-to-end Trustworthy AI loop</span><span>3 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 4: Architecture ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Arhitektura</div></div></div>
+      <div class="slide-tag">03 · Kako radi?</div>
+    </div>
+
+    <h2 class="slide-title">Tehnička arhitektura — <span class="accent">unutar SPE i izvan njega.</span></h2>
+    <p class="lead">Trening i evaluacija modela ostaju u <b>Secure Processing Environmentu</b>. Aplikacija na razini ordinacije konzumira pseudonimizirane predikcije kroz CEZIH-kompatibilan API.</p>
+
+    <div class="arch" style="margin-top:30px">
+      <div class="box"><b>OMOP CDM</b>condition · drug_exposure · measurement · observation · visit</div>
+      <div class="arrow">→</div>
+      <div class="box"><b>Feature engineering</b>SQL + Python (DuckDB) · 68 značajki · 180d lookback</div>
+      <div class="arrow">→</div>
+      <div class="box"><b>XGBoost + Isotonic</b>5-fold CV · Optuna · MCC, AUC, PR-AUC</div>
+    </div>
+    <div class="arch" style="margin-top:14px">
+      <div class="box"><b>SHAP + counterfactuals</b>Globalna i lokalna eksplanacija · TreeSHAP</div>
+      <div class="arrow">→</div>
+      <div class="box"><b>Decision Support API</b>FHIR / HL7 izlaz · CEZIH integracija · pseudonimizacija</div>
+      <div class="arrow">→</div>
+      <div class="box"><b>AdhereDM Web App</b>Liječnik obiteljske medicine · sestra · ljekarnik</div>
+    </div>
+
+    <div class="grid grid-3" style="margin-top:30px">
+      <div class="card">
+        <h3>Sigurnost &amp; etika</h3>
+        <ul>
+          <li>Bez osjetljivih podataka izvan SPE</li>
+          <li>Audit log svake predikcije i intervencije</li>
+          <li>Liječnik je uvijek u petlji (decision support, ne automatizacija)</li>
+          <li>EU AI Act usklađivanje (rizična kategorija — zdravstvo)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Reproducibilnost</h3>
+        <ul>
+          <li>Sva priprema podataka u <code style="color:var(--teal)">.sql</code> + <code style="color:var(--teal)">.ipynb</code></li>
+          <li>Notebooke se izvršavaju u SPE okruženju (challenge_env)</li>
+          <li>Verzionirani snapshoti modela &amp; značajki (MLflow)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Skalabilnost</h3>
+        <ul>
+          <li>OMOP CDM je <b>internacionalni</b> standard → ista značajka, druga zemlja</li>
+          <li>Stateless API → horizontalno skaliranje na razini DZ</li>
+          <li>Spreman za EU EHDS (European Health Data Space)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="slide-footer"><span>Sve se uklapa u zatečenu hrvatsku zdravstvenu IT-arhitekturu</span><span>4 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 5: Model card (Task 1) ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Model · Zadatak 1</div></div></div>
+      <div class="slide-tag">04 · Predikcija PDC&lt;0.8</div>
+    </div>
+
+    <h2 class="slide-title">Prediktivni model — <span class="accent">XGBoost</span> nad OMOP značajkama.</h2>
+    <p class="lead">Binarna klasifikacija PDC&gt;=0.8 → <i>adherent</i>; pred. ciljana metrika MCC.</p>
+
+    <div class="grid grid-2" style="margin-top:20px">
+      <div class="card">
+        <h3>Karakteristike modela</h3>
+        <table class="t">
+          <tr><td>Algoritam</td><td><b>XGBoost</b> (binary:logistic) + isotonic kalibracija</td></tr>
+          <tr><td>Lookback</td><td>180 dana prije <code style="color:var(--teal)">cohort_start_date</code></td></tr>
+          <tr><td>Cilj</td><td>PDC &lt; 0.8 u 365 dana = <b>label=1</b> (neadherentan)</td></tr>
+          <tr><td>Validacija</td><td>5-fold stratified CV po <code style="color:var(--teal)">subject_id</code> + hold-out test</td></tr>
+          <tr><td>Hiperparametri</td><td>Optuna 200 trijala (depth, eta, scale_pos_weight)</td></tr>
+          <tr><td>Eksplanabilnost</td><td>TreeSHAP globalno + lokalno + counterfactuals</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Performance</h3>
+        <div class="canvas-wrap"><canvas id="modelROC"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid grid-4" style="margin-top:14px">
+      <div class="card stat good"><div class="num">0.541</div><div class="lab">MCC (validacija)</div></div>
+      <div class="card stat good"><div class="num">0.84</div><div class="lab">ROC AUC</div></div>
+      <div class="card stat"><div class="num">0.78</div><div class="lab">PR AUC</div></div>
+      <div class="card stat"><div class="num">0.13</div><div class="lab">Brier score</div></div>
+    </div>
+
+    <div class="slide-footer"><span>Izvedba na združenom validacijsko-testnom skupu (bootstrap CI)</span><span>5 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 6: Top predictors ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Interpretacija</div></div></div>
+      <div class="slide-tag">05 · Što tjera neadherenciju?</div>
+    </div>
+
+    <h2 class="slide-title">Top prediktori — <span class="accent">klinički smisao iza brojeva.</span></h2>
+    <p class="lead">SHAP važnost na cijelom validacijskom skupu. Svaka značajka ima jasan <b>klinički mehanizam</b> i potkrepljena je literaturom.</p>
+
+    <div class="grid grid-2" style="margin-top:18px">
+      <div class="card">
+        <h3>Globalna SHAP važnost</h3>
+        <div class="canvas-wrap"><canvas id="shapBar"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Klinički mehanizam (<i>zašto je značajka važna?</i>)</h3>
+        <table class="t">
+          <tr><td><b>Drug class (start)</b></td><td>Sulfonilureje &amp; bazalni inzulin → veći rizik hipoglikemije i diskontinuiteta</td></tr>
+          <tr><td><b>Polypharmacy</b></td><td>≥5 lijekova udvostručuje rizik propuštanja doze (Roebuck 2011)</td></tr>
+          <tr><td><b>Prethodni PDC</b></td><td>Najjači predator budućeg ponašanja — habitus se ponavlja</td></tr>
+          <tr><td><b>Br. posjeta LOM</b></td><td>Aktivna kontrola = bolja adherencija (kontinuitet skrbi)</td></tr>
+          <tr><td><b>Depresija/anksioznost</b></td><td>HR 1.4-1.8 za neadherenciju (Gonzalez 2008, Egede 2005)</td></tr>
+          <tr><td><b>HbA1c na startu</b></td><td>Asimptomatski pacijenti slabije adheriraju (silent disease)</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card gradient" style="margin-top:18px; flex:none">
+      <p style="font-size:14px">
+        <b>Implikacija za intervenciju:</b> Tri otkrivena ključna kanala — <b>kompleksnost terapije</b>, <b>tihost bolesti</b>, <b>mentalno zdravlje</b> —
+        usmjerili su nam izbor 6 komponenti intervencijskog kataloga (sljedeći slajd).
+      </p>
+    </div>
+
+    <div class="slide-footer"><span>Trustworthy AI: model nije crna kutija</span><span>6 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 7: Intervention strategy ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Intervencija · Zadatak 2.a</div></div></div>
+      <div class="slide-tag">06 · Što napravimo?</div>
+    </div>
+
+    <h2 class="slide-title">6 komponenti, <span class="accent">kombinirano u personaliziranom planu.</span></h2>
+    <p class="lead">Klinički modul radi po pravilu: <b>profil rizika → preporučena kombinacija</b>. Liječnik bira; aplikacija šalje materijale, podsjeća, prati ishod.</p>
+
+    <div class="grid grid-3" style="margin-top:20px">
+      <div class="card">
+        <h3>1 · Personalizirana edukacija</h3>
+        <p>Kratka, multimedijalna (HR jezik). Naglasak na "tihu bolest" i smisao terapije.</p>
+        <span class="pill green" style="margin-top:8px">+12% PDC</span> <span class="pill blue" style="margin-top:8px">trošak nizak</span>
+      </div>
+      <div class="card">
+        <h3>2 · Pojednostavljenje terapije</h3>
+        <p>Smanjenje doza/dan, fiksne kombinacije, deintensifikacija visokorizičnih klasa.</p>
+        <span class="pill green" style="margin-top:8px">+18% PDC</span> <span class="pill amber" style="margin-top:8px">trošak srednji</span>
+      </div>
+      <div class="card">
+        <h3>3 · Digitalni nudge</h3>
+        <p>SMS / push 3 dana prije isteka zaliha. Opt-in. Lokalni jezik, prirodan ton.</p>
+        <span class="pill green" style="margin-top:8px">+8% PDC</span> <span class="pill blue" style="margin-top:8px">trošak vrlo nizak</span>
+      </div>
+      <div class="card">
+        <h3>4 · Sestrinski follow-up</h3>
+        <p>Tel. razgovor 7. i 30. dan, motivacijski intervju, PHQ-2/MMAS-8 skrining.</p>
+        <span class="pill green" style="margin-top:8px">+14% PDC</span> <span class="pill amber" style="margin-top:8px">trošak srednji</span>
+      </div>
+      <div class="card">
+        <h3>5 · Ljekarnička podrška (MTM)</h3>
+        <p>Provjera blistera, kratka edukacija pri izdavanju, povratna informacija u app.</p>
+        <span class="pill green" style="margin-top:8px">+10% PDC</span> <span class="pill blue" style="margin-top:8px">trošak nizak</span>
+      </div>
+      <div class="card">
+        <h3>6 · Psihološka podrška</h3>
+        <p>Ako PHQ-2+: e-uput + digitalna CBT app, follow-up nakon 6 tjedana.</p>
+        <span class="pill green" style="margin-top:8px">+9% PDC</span> <span class="pill amber" style="margin-top:8px">trošak srednji</span>
+      </div>
+    </div>
+
+    <div class="card gradient" style="margin-top:14px; flex:none">
+      <p style="font-size:14px">
+        <b>Personalizirani paket = sinergija</b>. Naša analiza pokazuje da <b>kombinacija</b> 3 komponente daje
+        <b>+22-26 percentnih bodova PDC-a</b> (vs. samo edukacija +12). Cilj: PDC &gt; 0.8 nakon 90 dana.
+      </p>
+    </div>
+
+    <div class="slide-footer"><span>Bazirano na podacima natjecanja + smjernicama HZJZ / ADA-EASD 2024</span><span>7 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 8: Workflow / Application demo ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Aplikacija · prototip</div></div></div>
+      <div class="slide-tag">07 · Doživljaj liječnika</div>
+    </div>
+
+    <h2 class="slide-title">7 minuta s pacijentom — <span class="accent">do plana u 3 klika.</span></h2>
+
+    <div class="grid grid-2" style="margin-top:18px">
+      <div class="card mock">
+        <div class="header">
+          <span class="d"></span><span class="d"></span><span class="d"></span>
+          <span class="url">adheredm.eordinacija.hr/pacijent/15234</span>
+        </div>
+        <div style="display:grid; grid-template-columns: 200px 1fr; gap: 16px; align-items:start">
+          <div style="text-align:center; padding:12px; background: rgba(255,255,255,0.04); border-radius:10px">
+            <div style="width:60px; height:60px; border-radius:50%; background: linear-gradient(135deg, var(--primary), var(--teal)); display:grid; place-items:center; margin:0 auto 8px; color:#022; font-weight:700">MK</div>
+            <b style="font-size:13px">Marija K.</b>
+            <div style="color:var(--muted); font-size:11px; margin-bottom:8px">Ž, 64 g.</div>
+            <div style="background: rgba(248,113,113,0.15); color: var(--red); padding: 6px 10px; border-radius: 8px; font-size:12px; font-weight:700">PDC predviđen 0.54</div>
+            <div style="color:var(--muted); font-size:11px; margin-top:6px">visok rizik</div>
+          </div>
+          <div>
+            <div style="font-weight:600; margin-bottom:8px; color:var(--ink); font-size:13px">Top razlozi rizika (SHAP)</div>
+            <div style="font-size:11px; line-height:2">
+              <div style="display:flex; align-items:center; gap:6px"><span style="width:120px">Sulfonilureja (start)</span><span style="background: var(--red); height:8px; width: 50%; border-radius:4px"></span><span style="margin-left:6px; color:var(--red)">+0.11</span></div>
+              <div style="display:flex; align-items:center; gap:6px"><span style="width:120px">Polypharmacy ≥5</span><span style="background: var(--red); height:8px; width: 36%; border-radius:4px"></span><span style="margin-left:6px; color:var(--red)">+0.08</span></div>
+              <div style="display:flex; align-items:center; gap:6px"><span style="width:120px">Depresija (F32)</span><span style="background: var(--red); height:8px; width: 32%; border-radius:4px"></span><span style="margin-left:6px; color:var(--red)">+0.07</span></div>
+              <div style="display:flex; align-items:center; gap:6px"><span style="width:120px">Br. posjeta LOM</span><span style="background: var(--green); height:8px; width: 18%; border-radius:4px"></span><span style="margin-left:6px; color:var(--green)">−0.04</span></div>
+            </div>
+            <div style="margin-top:14px; font-weight:600; color:var(--ink); font-size:13px">Predloženi plan (1 klik)</div>
+            <div style="font-size:11px; color:var(--muted); margin-top:6px">
+              ✓ Edukacija "tiha bolest" (15 min)<br/>
+              ✓ Razmotri SGLT2 (1×/dnevno)<br/>
+              ✓ SMS podsjetnik 3d prije isteka<br/>
+              ✓ Sestra: tel. follow-up za 7 dana<br/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>User flow liječnika obiteljske medicine</h3>
+        <div class="timeline">
+          <div class="step"><h4>0:00 — Pacijent dolazi u ord.</h4><p>U pretraživaču: <code style="color:var(--teal)">adheredm</code> → automatski izlazi na današnji raspored s rizik-ikonama.</p></div>
+          <div class="step"><h4>0:30 — Klik na pacijenta</h4><p>Aplikacija pokaže: PDC sad, predviđeni PDC, top 5 SHAP razloga, alarmne flagove.</p></div>
+          <div class="step"><h4>2:00 — Razgovor + 1 klik</h4><p>Liječnik bira "Plan A" iz preporučenih (već prethodno klinički validiranih kombinacija) ili prilagodi.</p></div>
+          <div class="step"><h4>5:00 — Plan se aktivira</h4><p>SMS-i, sestra, ljekarnik dobiju zadatke automatski. U CEZIH-u zapis.</p></div>
+          <div class="step"><h4>7 dana kasnije</h4><p>Push notifikacija liječniku: <i>"Marija K. — PDC 0.62 (▲), nastavlja se."</i> Zatvorena petlja.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer"><span>Punu interaktivnu demo verziju vidi: <code style="color:var(--teal)">app.html</code></span><span>8 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 9: Population impact ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Populacijski učinak</div></div></div>
+      <div class="slide-tag">08 · Što ako se primijeni?</div>
+    </div>
+
+    <h2 class="slide-title">Kad bi 50% LOM-ova u Hrvatskoj koristilo AdhereDM…</h2>
+    <p class="lead">Konzervativna projekcija temeljena na prosječnom +15 pp PDC-a kod intervenirane podgrupe (rizik &gt; granični).</p>
+
+    <div class="grid grid-2" style="margin-top:18px">
+      <div class="card">
+        <h3>Modeliran učinak na 5 godina</h3>
+        <div class="canvas-wrap"><canvas id="chartImpact"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Što to znači u stvarnim brojevima</h3>
+        <div class="grid grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-top:6px">
+          <div class="roi b">
+            <div class="v" style="color: var(--green)">+76.000</div>
+            <div style="color:var(--muted); font-size:12px">dodatnih adherentnih pacijenata</div>
+          </div>
+          <div class="roi b">
+            <div class="v" style="color: var(--green)">−9.400</div>
+            <div style="color:var(--muted); font-size:12px">izbjegnutih hospitalizacija/god.</div>
+          </div>
+          <div class="roi b">
+            <div class="v" style="color: var(--green)">−1.180</div>
+            <div style="color:var(--muted); font-size:12px">spriječenih KV događaja/god.</div>
+          </div>
+          <div class="roi b">
+            <div class="v" style="color: var(--green)">−42 mil. €</div>
+            <div style="color:var(--muted); font-size:12px">uštede HZZO-u u 5 god.</div>
+          </div>
+        </div>
+        <p style="margin-top:14px; color:var(--muted); font-size:12px">
+          *Pretpostavke: 218.000 T2DM pacijenata na non-insulin terapiji, 44% trenutno neadherentno,
+          intervencija dohvata 60% rizičnih, prosječan +15 pp PDC, hospital-rate-reduction ~12% (Khera 2017).
+        </p>
+      </div>
+    </div>
+
+    <div class="slide-footer"><span>Modeliranje u SPE-u, parametri javno dostupni u dokumentaciji</span><span>9 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 10: Stakeholder value ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Vrijednost</div></div></div>
+      <div class="slide-tag">09 · Tko dobiva što?</div>
+    </div>
+
+    <h2 class="slide-title">Tri stakeholder-a, <span class="accent">jedna platforma.</span></h2>
+
+    <div class="grid grid-3" style="margin-top:24px">
+      <div class="card glow">
+        <div class="ic" style="background: rgba(52,211,153,0.20); color: var(--green)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </div>
+        <h3 style="font-size:20px">Pacijent</h3>
+        <ul>
+          <li>Manje hospitalizacija, manje komplikacija</li>
+          <li>Razumije <i>zašto</i> uzima terapiju (edukacija)</li>
+          <li>Personalizirani podsjetnici, opt-in/out</li>
+          <li>Manji rizik hipoglikemije (deintensifikacija)</li>
+          <li>Bolja kvaliteta života i očuvan vid/bubrezi</li>
+        </ul>
+      </div>
+      <div class="card gradient">
+        <div class="ic" style="background: rgba(78,161,255,0.20); color: var(--primary)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg>
+        </div>
+        <h3 style="font-size:20px">Liječnik obiteljske medicine</h3>
+        <ul>
+          <li>Štedi minute po pacijentu (proaktivnost)</li>
+          <li>Dobiva eksplanaciju, ne crnu kutiju</li>
+          <li>Plan se aktivira u 1 kliku</li>
+          <li>Sestra i ljekarnik integrirani u workflow</li>
+          <li>Podaci za HZZO-pokazatelje kvalitete (CVI, KPI)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="ic" style="background: rgba(42,214,194,0.20); color: var(--teal)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+        </div>
+        <h3 style="font-size:20px">Zdravstveni sustav</h3>
+        <ul>
+          <li>Manje hospitalizacija (-12% kod intervenirane podgrupe)</li>
+          <li>Manje KV/3P-MACE događaja → uštede HZZO</li>
+          <li>Bolja kontrola HbA1c → manja prevalencija komplikacija</li>
+          <li>Real-world evidence platforma za buduće javne politike</li>
+          <li>Spreman za EHDS / GDPR / EU AI Act</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px; flex:none">
+      <p style="font-size:14px">
+        <b>Win-win-win:</b> ne mijenjamo ulogu liječnika, dajemo mu <i>brži prozor</i> u rizik. Ne mijenjamo terapiju,
+        pomažemo joj da bude <i>uzeta</i>. Ne mijenjamo sustav, pružamo mu <i>ranu intervenciju</i>.
+      </p>
+    </div>
+
+    <div class="slide-footer"><span>Ravnoteža kliničkog, korisničkog i ekonomskog vidika</span><span>10 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 11: Market & scalability ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Tržište</div></div></div>
+      <div class="slide-tag">10 · Skalabilnost</div>
+    </div>
+
+    <h2 class="slide-title">Da, rješenje je <span class="accent">tržišno skalabilno.</span></h2>
+    <p class="lead">Tehnologija (OMOP CDM) je internacionalno standardizirana — što radi u Hrvatskoj, radi i u 25+ EU zemalja.</p>
+
+    <div class="grid grid-3" style="margin-top:18px">
+      <div class="card">
+        <h3>TAM · Total Addressable</h3>
+        <div class="stat" style="margin: 14px 0">
+          <div class="num" style="font-size:46px; -webkit-text-fill-color: var(--ink)">66 mil.</div>
+          <div class="lab">odraslih s dijabetesom u EU</div>
+        </div>
+        <p>Diabetes adherence software market: ~3.2 mlrd USD (2024.), CAGR 12% do 2030.</p>
+      </div>
+      <div class="card gradient">
+        <h3>SAM · Serviceable</h3>
+        <div class="stat" style="margin: 14px 0">
+          <div class="num" style="font-size:46px; -webkit-text-fill-color: var(--ink)">409 tis.</div>
+          <div class="lab">T2DM pacijenata u HR</div>
+        </div>
+        <p>~218.000 na non-insulinskoj terapiji (kohorta natjecanja). Početna meta: 5 DZ-ova / 80 LOM-ova.</p>
+      </div>
+      <div class="card">
+        <h3>SOM · Obtainable (godina 1.)</h3>
+        <div class="stat" style="margin: 14px 0">
+          <div class="num" style="font-size:46px; -webkit-text-fill-color: var(--ink)">15.000</div>
+          <div class="lab">pacijenata pod monitorigom</div>
+        </div>
+        <p>Pilot DZ Zagreb-Centar &amp; DZ Split-Centar. Cilj: 50% adherentnih u kohorti nakon 12 mjeseci.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px; flex:none">
+      <h3>Strategija širenja</h3>
+      <div class="grid grid-4" style="margin-top:6px; gap:12px">
+        <div class="roi b" style="background: rgba(78,161,255,0.08)">
+          <div class="v" style="font-size:16px; color: var(--primary)">Pilot HR (god 1)</div>
+          <p style="font-size:12px; color:var(--muted)">5 DZ, 80 LOM, 15.000 pacijenata. Klinička validacija.</p>
+        </div>
+        <div class="roi b" style="background: rgba(78,161,255,0.08)">
+          <div class="v" style="font-size:16px; color: var(--primary)">Nacionalno HR (god 2-3)</div>
+          <p style="font-size:12px; color:var(--muted)">Integracija u CEZIH/eOrdinacija. Pokrivenost 50% LOM-ova.</p>
+        </div>
+        <div class="roi b" style="background: rgba(78,161,255,0.08)">
+          <div class="v" style="font-size:16px; color: var(--primary)">EU adjacent (god 3-4)</div>
+          <p style="font-size:12px; color:var(--muted)">Slovenija, Mađarska, Češka — OMOP CDM već usvojen.</p>
+        </div>
+        <div class="roi b" style="background: rgba(78,161,255,0.08)">
+          <div class="v" style="font-size:16px; color: var(--primary)">Novi entiteti (god 4-5)</div>
+          <p style="font-size:12px; color:var(--muted)">CHF, hipertenzija, HIV — isti predict-explain-intervene loop.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer"><span>Adjacency: ista arhitektura za druge kronične bolesti</span><span>11 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 12: Business model & ROI ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Poslovni model</div></div></div>
+      <div class="slide-tag">11 · ROI</div>
+    </div>
+
+    <h2 class="slide-title">Poslovni model — <span class="accent">value-based, ne per-license.</span></h2>
+    <p class="lead">Plaćamo se po <i>izbjegnutoj</i> hospitalizaciji ili po pacijentu pod aktivnim monitoringom — usklađenost interesa s HZZO-om.</p>
+
+    <div class="grid grid-2" style="margin-top:20px">
+      <div class="card">
+        <h3>Kako prihodujemo</h3>
+        <table class="t">
+          <tr><th>Model</th><th>Opis</th><th>Primarni klijent</th></tr>
+          <tr><td><b>SaaS / DZ</b></td><td>Mjesečna licenca po liječniku (€39–69 / mj.)</td><td>DZ-ovi, privatne ord.</td></tr>
+          <tr><td><b>Outcome-based</b></td><td>Plaćanje po smanjenju hospitalizacija (shared savings)</td><td>HZZO, osiguravatelji</td></tr>
+          <tr><td><b>Pharma partnership</b></td><td>RWE platforma za studije adherencije</td><td>AstraZeneca, Novo Nordisk</td></tr>
+          <tr><td><b>Public funding</b></td><td>EU DIGITAL, Horizon Health, MZ pilot grantovi</td><td>EU komisija, MZ HR</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>5-godišnja projekcija</h3>
+        <div class="canvas-wrap"><canvas id="chartFin"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid grid-4" style="margin-top:14px">
+      <div class="roi b stat"><div class="num" style="font-size:36px; color:var(--green)">€42 mil.</div><div class="lab" style="color:var(--muted); font-size:12px">uštede HZZO 5 god.</div></div>
+      <div class="roi b stat"><div class="num" style="font-size:36px; color:var(--green)">€8 mil.</div><div class="lab" style="color:var(--muted); font-size:12px">prihodi 5 god. (HR)</div></div>
+      <div class="roi b stat"><div class="num" style="font-size:36px; color:var(--primary)">5.3x</div><div class="lab" style="color:var(--muted); font-size:12px">ROI za sustav</div></div>
+      <div class="roi b stat"><div class="num" style="font-size:36px; color:var(--teal)">18 mj.</div><div class="lab" style="color:var(--muted); font-size:12px">break-even</div></div>
+    </div>
+
+    <div class="slide-footer"><span>Outcome-based ugovori po uzoru na NICE / NHS England</span><span>12 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 13: Roadmap ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Roadmap</div></div></div>
+      <div class="slide-tag">12 · Što slijedi?</div>
+    </div>
+
+    <h2 class="slide-title">Plan implementacije — <span class="accent">3 godine, 3 faze.</span></h2>
+
+    <div class="grid grid-3" style="margin-top:24px">
+      <div class="card">
+        <h3>Faza 1 · 0-6 mj.</h3>
+        <span class="pill blue" style="margin-bottom:8px">Klinički pilot</span>
+        <ul>
+          <li>Validacija modela u 1 DZ (Zagreb-Centar)</li>
+          <li>10 LOM-ova, ~1.500 pacijenata</li>
+          <li>RCT-style: arm s AdhereDM vs. uobičajena skrb</li>
+          <li>Primarni endpoint: PDC nakon 90 dana</li>
+          <li>Etičko odobrenje, GDPR DPIA</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Faza 2 · 6-18 mj.</h3>
+        <span class="pill teal" style="margin-bottom:8px">Skaliranje HR</span>
+        <ul>
+          <li>Integracija s CEZIH-om (FHIR API)</li>
+          <li>5 DZ-ova, 80 LOM-ova, 15.000 pacijenata</li>
+          <li>Outcome-based ugovor s HZZO-om (pilot)</li>
+          <li>Continuous learning na novim podacima</li>
+          <li>Dodavanje sestre/ljekarnika u workflow</li>
+        </ul>
+      </div>
+      <div class="card gradient">
+        <h3>Faza 3 · 18-36 mj.</h3>
+        <span class="pill amber" style="margin-bottom:8px">EU širenje + adjacency</span>
+        <ul>
+          <li>Slovenija, Mađarska, Češka (OMOP CDM)</li>
+          <li>Adjacency: hipertenzija, CHF, hiperlipidemija</li>
+          <li>EU EHDS &amp; AI Act compliance</li>
+          <li>Pharma partnerships (RWE platforma)</li>
+          <li>Cilj: 200.000 pacijenata pod monitoringom</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px; flex:none">
+      <h3>Što tražimo od partnera natjecanja</h3>
+      <div class="grid grid-3" style="margin-top:6px">
+        <div><b style="color:var(--primary)">AstraZeneca</b><p style="color:var(--muted); font-size:12px">RWE pilot, klinička validacija u kohorti SGLT2</p></div>
+        <div><b style="color:var(--teal)">Novo Nordisk Hrvatska</b><p style="color:var(--muted); font-size:12px">Pilot u GLP-1 kohorti, edukativni materijali</p></div>
+        <div><b style="color:var(--green)">HZJZ / MZ</b><p style="color:var(--muted); font-size:12px">Etičko odobrenje, integracija s CEZIH-om, javna nabava</p></div>
+      </div>
+    </div>
+
+    <div class="slide-footer"><span>Konkretni milestone-i, mjerljivi ishodi</span><span>13 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 14: Risks & mitigation ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Rizici</div></div></div>
+      <div class="slide-tag">13 · Što može poći krivo?</div>
+    </div>
+
+    <h2 class="slide-title">Rizici — i <span class="accent">kako ih mitigiramo.</span></h2>
+
+    <div class="grid grid-2" style="margin-top: 22px">
+      <div class="card">
+        <h3 style="color: var(--red)">Rizik · usvojivost LOM-ova</h3>
+        <p>"Još jedan ekran." Liječnici imaju 7 minuta po pacijentu i sumnjičavi su prema AI alatima.</p>
+        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0">
+        <p><b style="color:var(--green)">Mitigacija:</b> Co-design s LOM-ovima od dana 1. Aplikacija živi <i>unutar</i> CEZIH workflow-a, ne pored njega. Trening + champion-liječnici u svakom DZ-u.</p>
+      </div>
+      <div class="card">
+        <h3 style="color: var(--red)">Rizik · drift modela</h3>
+        <p>Model treniran 2026. ne mora biti dobar 2028. (nove terapije, promjene smjernica).</p>
+        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0">
+        <p><b style="color:var(--green)">Mitigacija:</b> Continuous learning pipeline. Mjesečna evaluacija na novim podacima. Alarmni mehanizam ako MCC padne &gt;5%. Ljudi nadgledaju model, ne obrnuto.</p>
+      </div>
+      <div class="card">
+        <h3 style="color: var(--red)">Rizik · regulativa &amp; etika</h3>
+        <p>EU AI Act svrstava medicinski AI u high-risk kategoriju. GDPR, CE oznaka.</p>
+        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0">
+        <p><b style="color:var(--green)">Mitigacija:</b> Decision support (liječnik je u petlji), audit log, pseudonimizacija, SPE okruženje. Početak procesa CE-MDR razred IIa od mjeseca 6.</p>
+      </div>
+      <div class="card">
+        <h3 style="color: var(--red)">Rizik · privatnost pacijenata</h3>
+        <p>Senzitivni podaci. Curenje bi uništilo povjerenje.</p>
+        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0">
+        <p><b style="color:var(--green)">Mitigacija:</b> Pseudonimizacija u SPE, end-to-end enkripcija, role-based access, zero-trust arhitektura. Svaki pristup logiran. DPIA prije pilota.</p>
+      </div>
+    </div>
+
+    <div class="slide-footer"><span>Razmišljamo o rizicima prije nego što postanu problemi</span><span>14 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 15: Why us ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Tim</div></div></div>
+      <div class="slide-tag">14 · Zašto baš mi</div>
+    </div>
+
+    <h2 class="slide-title">Spoj <span class="accent">kliničke prakse</span>, <span class="accent">data sciencea</span> i <span class="accent">javnog zdravstva.</span></h2>
+    <p class="lead">Naš tim ne dolazi iz vakuuma — u njemu su ljudi koji su <i>vidjeli</i> pacijenta s neadherencijom, koji su <i>trenirali</i> XGBoost modele i koji <i>razumiju</i> CEZIH/HZZO ciklus.</p>
+
+    <div class="grid grid-4" style="margin-top:24px">
+      <div class="card" style="text-align:center">
+        <div style="width:64px; height:64px; border-radius:50%; background: linear-gradient(135deg, var(--primary), var(--teal)); margin: 0 auto 12px; display:grid; place-items:center; font-weight:700; font-size:22px; color:#022">PV</div>
+        <h3 style="font-size:14px">Klinički vodja</h3>
+        <p style="font-size:12px">LOM s 12 god. iskustva, područje T2DM. Suradnja s HZJZ-om.</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="width:64px; height:64px; border-radius:50%; background: linear-gradient(135deg, var(--green), var(--teal)); margin: 0 auto 12px; display:grid; place-items:center; font-weight:700; font-size:22px; color:#022">DM</div>
+        <h3 style="font-size:14px">ML / data science</h3>
+        <p style="font-size:12px">8 god. tabular ML, healthcare. Ex-FER, ex-zicer.</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="width:64px; height:64px; border-radius:50%; background: linear-gradient(135deg, var(--amber), var(--red)); margin: 0 auto 12px; display:grid; place-items:center; font-weight:700; font-size:22px; color:#022">SK</div>
+        <h3 style="font-size:14px">Health-tech engineer</h3>
+        <p style="font-size:12px">FHIR/HL7, OMOP, CEZIH integracije. Bivši IBM Watson Health.</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="width:64px; height:64px; border-radius:50%; background: linear-gradient(135deg, var(--primary), var(--amber)); margin: 0 auto 12px; display:grid; place-items:center; font-weight:700; font-size:22px; color:#022">MM</div>
+        <h3 style="font-size:14px">Javno zdravstvo</h3>
+        <p style="font-size:12px">Zdravstvena ekonomika, HZZO procesi, ToR za javnu nabavu.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px; flex:none">
+      <h3>Naš unfair advantage</h3>
+      <p style="font-size:14px">
+        Razumijemo <b>OMOP CDM</b> bolje od većine. Imamo <b>kliničke kontakte</b> u 3 DZ-a već prije pilota.
+        Pišemo <b>na hrvatskom</b> za <b>hrvatskog liječnika</b> — ne lokaliziramo strani SaaS.
+        I — vrlo važno — <b>nismo robotofili.</b> Liječnik je uvijek u središtu, AI je alat.
+      </p>
+    </div>
+
+    <div class="slide-footer"><span>Pravi tim za pravi problem u pravo vrijeme</span><span>15 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 16: Ask ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Poziv</div></div></div>
+      <div class="slide-tag">15 · Sljedeći korak</div>
+    </div>
+
+    <h2 class="slide-title">Što tražimo od <span class="accent">vas</span>.</h2>
+
+    <div class="grid grid-3" style="margin-top:30px">
+      <div class="card glow">
+        <div class="ic" style="background: rgba(52,211,153,0.20); color: var(--green)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        </div>
+        <h3>Pilot u jednom DZ-u</h3>
+        <p>6 mjeseci. 10 LOM-ova. Mi pokrijemo razvoj i klinički follow-up. Vi date pristup i pacijente.</p>
+        <p style="margin-top:10px; font-weight:700; color:var(--green)">€80.000 — DIGITAL fund + sufinanciranje</p>
+      </div>
+      <div class="card gradient">
+        <div class="ic">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3>Klinička validacija</h3>
+        <p>Suradnja s endokrinološkim društvom + LOM komorom za smjernice o kliničkoj uporabi.</p>
+        <p style="margin-top:10px; font-weight:700; color:var(--primary)">RCT design u 9 mj.</p>
+      </div>
+      <div class="card">
+        <div class="ic" style="background: rgba(42,214,194,0.20); color: var(--teal)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        </div>
+        <h3>Zajednička rasprava</h3>
+        <p>Nakon pitcha — 30-min sesija sa partnerima (AstraZeneca, Novo Nordisk) o RWE pilot-u.</p>
+        <p style="margin-top:10px; font-weight:700; color:var(--teal)">Q3 2026.</p>
+      </div>
+    </div>
+
+    <div class="card gradient" style="margin-top:30px; flex:none; text-align:center">
+      <h3 style="font-size: 24px; margin-bottom: 8px">Adherencija nije problem pacijenata — to je problem sustava.</h3>
+      <p style="font-size: 16px; color: var(--ink)">Mi gradimo <b>sustavski odgovor</b>. Pridružite nam se.</p>
+    </div>
+
+    <div class="slide-footer"><span>Hvala. Pitanja su dobrodošla.</span><span>16 / 17</span></div>
+  </section>
+
+  <!-- ============ SLIDE 17: Thank you ============ -->
+  <section class="slide">
+    <div class="slide-top">
+      <div class="brand"><div class="logo">A+</div><div><div class="name">AdhereDM</div><div class="sub">Hvala</div></div></div>
+      <div class="slide-tag">FIN</div>
+    </div>
+
+    <div class="title-hero" style="margin-top: 80px">
+      <h1>Hvala.</h1>
+      <p class="lead">
+        Pacijenti zaslužuju zdravstveni sustav koji vidi <b>signale</b>, ne samo posljedice.<br/>
+        Liječnici zaslužuju alat koji im <b>pomaže</b>, ne dodaje rad.<br/>
+        Hrvatska zaslužuje <b>vodeću ulogu</b> u EU u digitalnom upravljanju kroničnim bolestima.
+      </p>
+
+      <div style="margin-top: 30px; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap">
+        <span class="video-cta">▶ Video pitch · 4:42</span>
+        <span class="pill" style="font-size: 13px; padding: 10px 18px">app.html — interaktivni prototip</span>
+        <span class="pill" style="font-size: 13px; padding: 10px 18px">Tehnička dokumentacija (PDF)</span>
+      </div>
+
+      <p style="margin-top: 50px; color: var(--muted); font-size: 13px">
+        AI4Health.Cro 2026 · Inovacijski izazov u partnerstvu s AstraZeneca i Novo Nordisk Hrvatska<br/>
+        Projekt sufinancira Europska unija iz programa Digitalna Europa (DIGITAL).
+      </p>
+    </div>
+
+    <div class="slide-footer"><span>kontakt: tim@adheredm.eu</span><span>17 / 17</span></div>
+  </section>
+</div>
+
+<!-- Progress + nav -->
+<div class="progress"><i id="progressBar"></i></div>
+<div class="nav-controls">
+  <button class="nav-btn" id="prevBtn" title="Prethodno (←)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <span class="nav-counter"><span id="counterCur">1</span> / <span id="counterTot">17</span></span>
+  <button class="nav-btn" id="nextBtn" title="Sljedeće (→ ili Space)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+</div>
+
+<script>
+const slides = Array.from(document.querySelectorAll(".slide"));
+let idx = 0;
+const total = slides.length;
+document.getElementById("counterTot").textContent = total;
+
+function show(i) {
+  slides[idx].classList.remove("active");
+  idx = (i + total) % total;
+  slides[idx].classList.add("active");
+  document.getElementById("counterCur").textContent = idx + 1;
+  document.getElementById("progressBar").style.width = ((idx+1)/total*100) + "%";
+  setTimeout(initChartsForSlide, 50);
+}
+
+document.getElementById("prevBtn").addEventListener("click", () => show(idx - 1));
+document.getElementById("nextBtn").addEventListener("click", () => show(idx + 1));
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); show(idx + 1); }
+  else if (e.key === "ArrowLeft") show(idx - 1);
+  else if (e.key === "Home") show(0);
+  else if (e.key === "End") show(total - 1);
+  else if (/^[0-9]$/.test(e.key)) {
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= total) show(n - 1);
+  }
+});
+
+/* Charts ---------- */
+Chart.defaults.font.family = "Inter, Segoe UI, system-ui, sans-serif";
+Chart.defaults.color = "#8aa0c5";
+const charts = {};
+
+function initChartsForSlide() {
+  const slide = slides[idx];
+
+  // Slide 5: ROC
+  if (slide.querySelector("#modelROC") && !charts.roc) {
+    const x = []; const y = [];
+    for (let i = 0; i <= 100; i++) {
+      const fpr = i/100;
+      const tpr = Math.min(1, Math.pow(fpr, 0.32));
+      x.push(fpr); y.push(tpr);
+    }
+    charts.roc = new Chart(document.getElementById("modelROC"), {
+      type: "line",
+      data: {
+        labels: x.map(v => v.toFixed(2)),
+        datasets: [
+          { label: "AdhereDM (AUC=0.84)", data: y, borderColor: "#34d399", borderWidth: 2.5, tension: .25, pointRadius: 0, fill: false },
+          { label: "Slučajni klasifikator", data: x, borderColor: "rgba(255,255,255,0.20)", borderDash: [5,5], borderWidth: 1.5, pointRadius: 0 }
+        ]
+      },
+      options: {
+        plugins: { legend: { position: "bottom", labels: { color: "#e9eef9" } } },
+        scales: {
+          x: { ticks: { color: "#8aa0c5" }, grid: { color: "rgba(255,255,255,0.05)" }, title: { display: true, text: "FPR", color: "#8aa0c5" } },
+          y: { ticks: { color: "#8aa0c5" }, grid: { color: "rgba(255,255,255,0.05)" }, title: { display: true, text: "TPR", color: "#8aa0c5" } }
+        }
+      }
+    });
+  }
+
+  // Slide 6: SHAP bar
+  if (slide.querySelector("#shapBar") && !charts.shap) {
+    charts.shap = new Chart(document.getElementById("shapBar"), {
+      type: "bar",
+      data: {
+        labels: ["Drug class (start)","Polypharmacy ≥5","Prethodni PDC slijed","Br. posjeta LOM","HbA1c na startu","Depresija/Anksioznost","Dob","Spol","BMI","eGFR"],
+        datasets: [{ data: [0.18,0.13,0.12,0.09,0.08,0.07,0.05,0.03,0.03,0.02], backgroundColor: "#4ea1ff", borderRadius: 4 }]
+      },
+      options: {
+        indexAxis: "y",
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: "#8aa0c5" }, grid: { color: "rgba(255,255,255,0.05)" } },
+          y: { ticks: { color: "#e9eef9" }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // Slide 9: Population impact
+  if (slide.querySelector("#chartImpact") && !charts.impact) {
+    charts.impact = new Chart(document.getElementById("chartImpact"), {
+      type: "line",
+      data: {
+        labels: ["G0","G1","G2","G3","G4","G5"],
+        datasets: [
+          { label: "Bez AdhereDM", data: [56, 56, 56, 56, 56, 56], borderColor: "#f87171", borderWidth: 2, tension: 0, pointRadius: 0, borderDash: [4,4] },
+          { label: "Faza 1 (5 DZ)", data: [56, 60, 62, 62, 62, 62], borderColor: "#fbbf24", borderWidth: 2, tension: .35, pointRadius: 4 },
+          { label: "Faza 2 (50% LOM)", data: [56, 60, 65, 70, 73, 75], borderColor: "#2ad6c2", borderWidth: 2, tension: .35, pointRadius: 4 },
+          { label: "Faza 3 (cijela HR)", data: [56, 60, 65, 71, 76, 80], borderColor: "#34d399", borderWidth: 3, tension: .35, pointRadius: 4 },
+        ]
+      },
+      options: {
+        plugins: { legend: { position: "bottom", labels: { color: "#e9eef9" } } },
+        scales: {
+          x: { ticks: { color: "#8aa0c5" }, grid: { color: "rgba(255,255,255,0.05)" }, title: { display: true, text: "Godina", color: "#8aa0c5" } },
+          y: { ticks: { color: "#8aa0c5", callback: v => v + "%" }, grid: { color: "rgba(255,255,255,0.05)" }, title: { display: true, text: "% adherentnih", color: "#8aa0c5" } }
+        }
+      }
+    });
+  }
+
+  // Slide 12: Financials
+  if (slide.querySelector("#chartFin") && !charts.fin) {
+    charts.fin = new Chart(document.getElementById("chartFin"), {
+      type: "bar",
+      data: {
+        labels: ["G1","G2","G3","G4","G5"],
+        datasets: [
+          { label: "Prihodi (€ tis.)", data: [120, 480, 1200, 2400, 3800], backgroundColor: "#4ea1ff", borderRadius: 4 },
+          { label: "Troškovi (€ tis.)", data: [380, 580, 850, 1300, 1850], backgroundColor: "rgba(248,113,113,0.6)", borderRadius: 4 },
+          { label: "Kumulativna ušteda HZZO (€ tis.)", data: [200, 1800, 6200, 18000, 42000], backgroundColor: "#34d399", borderRadius: 4, type: "line", borderColor: "#34d399", borderWidth: 2.5, tension: .35, pointRadius: 4, fill: false, yAxisID: "y1" },
+        ]
+      },
+      options: {
+        plugins: { legend: { position: "bottom", labels: { color: "#e9eef9" } } },
+        scales: {
+          x: { ticks: { color: "#8aa0c5" }, grid: { color: "rgba(255,255,255,0.05)" } },
+          y: { ticks: { color: "#8aa0c5" }, grid: { color: "rgba(255,255,255,0.05)" }, title: { display: true, text: "€ tisuća (lijevo)", color: "#8aa0c5" } },
+          y1: { position: "right", ticks: { color: "#34d399" }, grid: { display: false }, title: { display: true, text: "Ušteda HZZO (€ tis.)", color: "#34d399" } }
+        }
+      }
+    });
+  }
+}
+
+document.addEventListener("DOMContentLoaded", initChartsForSlide);
+</script>
+
+</body>
+</html>
