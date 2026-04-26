@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AdhereDM — AI4Health.Cro 2026</title>
+<meta name="description" content="AdhereDM: prediktivni sustav podrške adherenciji T2DM. AI4Health.Cro Inovacijski izazov 2026." />
+<style>
+  :root {
+    --bg: #060b1a;
+    --bg-2: #0a1530;
+    --ink: #e9eef9;
+    --muted: #8aa0c5;
+    --primary: #4ea1ff;
+    --teal: #2ad6c2;
+    --green: #34d399;
+    --panel: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.10);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100vh; }
+  body {
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    background:
+      radial-gradient(1200px 700px at 75% -10%, #143b78 0%, transparent 60%),
+      radial-gradient(900px 600px at 0% 110%, #0a3a4d 0%, transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 32px 20px;
+  }
+  .wrap { max-width: 1080px; width: 100%; text-align: center; }
+  .brand {
+    display: inline-flex; align-items: center; gap: 12px;
+    margin-bottom: 24px;
+  }
+  .brand .logo {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--teal), var(--primary));
+    color: #021; display: grid; place-items: center;
+    font-weight: 800; font-size: 20px;
+  }
+  .brand .name {
+    font-size: 20px; font-weight: 700; line-height: 1.1; text-align: left;
+  }
+  .brand .tag {
+    font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+  }
+  h1 {
+    font-size: 56px; line-height: 1.05; margin: 0 0 16px;
+    letter-spacing: -1.5px; font-weight: 800;
+    background: linear-gradient(120deg, #fff 30%, #2ad6c2 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .lead {
+    font-size: 18px; color: var(--muted); line-height: 1.55;
+    max-width: 760px; margin: 0 auto 40px;
+  }
+  .lead b { color: var(--ink); font-weight: 600; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 720px) {
+    body { padding: 24px 14px; }
+    .grid { grid-template-columns: 1fr; gap: 14px; margin-bottom: 18px; }
+    h1 { font-size: 34px; line-height: 1.1; letter-spacing: -1px; margin-bottom: 12px; }
+    .lead { font-size: 15px; margin-bottom: 26px; }
+    .brand .name { font-size: 17px; }
+    .brand .logo { width: 38px; height: 38px; font-size: 17px; }
+    .card { padding: 22px 18px; }
+    .card h2 { font-size: 19px; }
+    .card p { font-size: 13px; }
+    .pills { gap: 6px; margin-bottom: 14px; }
+    .pill { font-size: 11px; padding: 5px 11px; }
+  }
+  @media (max-width: 380px) {
+    h1 { font-size: 28px; }
+    .lead { font-size: 14px; }
+    .card h2 { font-size: 17px; }
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px 26px;
+    text-align: left;
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform .2s ease, border-color .2s, background .2s;
+    display: flex; flex-direction: column; gap: 10px;
+    backdrop-filter: blur(10px);
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(78,161,255,0.45);
+    background: rgba(255,255,255,0.06);
+  }
+  .card .ic {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: rgba(78,161,255,0.15); color: var(--primary);
+    display: grid; place-items: center;
+    margin-bottom: 6px;
+  }
+  .card.app .ic { background: rgba(52,211,153,0.15); color: var(--green); }
+  .card h2 { margin: 0; font-size: 22px; font-weight: 700; }
+  .card p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+  .card .cta {
+    margin-top: 4px;
+    font-size: 13px; font-weight: 600; color: var(--primary);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .card.app .cta { color: var(--green); }
+  .card .cta svg { transition: transform .2s; }
+  .card:hover .cta svg { transform: translateX(3px); }
+
+  .pills {
+    display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .pill {
+    background: var(--panel); border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 11.5px; color: var(--muted);
+  }
+
+  footer {
+    color: var(--muted); font-size: 12px;
+    margin-top: 32px; line-height: 1.7;
+  }
+  footer b { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="brand">
+    <div class="logo">A+</div>
+    <div>
+      <div class="name">AdhereDM</div>
+      <div class="tag">AI4Health.Cro · Inovacijski izazov 2026</div>
+    </div>
+  </div>
+
+  <h1>Adherencija nije pitanje volje.<br/>To je pitanje sustava.</h1>
+
+  <p class="lead">
+    Kliničko-prediktivni sustav koji <b>liječnicima obiteljske medicine</b> u stvarnom vremenu pokazuje
+    koji je pacijent s dijabetesom tipa 2 rizičan za prekid terapije —
+    i konkretno predlaže <b>što učiniti danas</b>.
+  </p>
+
+  <div class="pills">
+    <span class="pill">XGBoost · MCC 0.541 · AUC 0.84</span>
+    <span class="pill">SHAP + counterfactuals</span>
+    <span class="pill">OMOP CDM · CEZIH-ready</span>
+    <span class="pill">EU AI Act / EHDS spreman</span>
+  </div>
+
+  <div class="grid">
+    <a class="card app" href="/app">
+      <div class="ic">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M3 14h7v7H3z"/><path d="M14 14h7v7h-7z"/></svg>
+      </div>
+      <h2>Interaktivna aplikacija</h2>
+      <p>
+        Pregled ordinacije, lista pacijenata, detalji s XAI objašnjenjem,
+        plan intervencija i model-quality dashboard.
+        <b style="display:block; color:var(--ink); font-weight:500; margin-top:6px">Demo prijava: dr. Maja Horvat (1 klik).</b>
+      </p>
+      <span class="cta">
+        Otvori aplikaciju
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </span>
+    </a>
+
+    <a class="card" href="/prezentacija">
+      <div class="ic">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <h2>Pitch prezentacija</h2>
+      <p>
+        17 slajdova: problem → rješenje → arhitektura → model →
+        intervencije → populacijski učinak → ROI → roadmap → ask.
+        <b style="display:block; color:var(--ink); font-weight:500; margin-top:6px">Tipke ← / → / Space / 1-9 za navigaciju.</b>
+      </p>
+      <span class="cta">
+        Otvori prezentaciju
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </span>
+    </a>
+  </div>
+
+  <footer>
+    <b>AI4Health.Cro 2026</b> · u partnerstvu s AstraZeneca i Novo Nordisk Hrvatska<br/>
+    Sintetički podaci · nema stvarnih PII-a · Decision support, ne automatizacija
+  </footer>
+</main>
+</body>
+</html>

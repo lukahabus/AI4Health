@@ -327,6 +327,137 @@
   /* Hide overflow inside specific dense slides */
   .slide.dense .lead { font-size: 14px; }
   .slide.dense .card p, .slide.dense .card ul { font-size: 12px; }
+
+  /* ==========================================================
+     MOBILE — portrait: convert scaled deck into a scroll feed
+     ========================================================== */
+  @media (max-width: 900px) and (orientation: portrait) {
+    body {
+      display: block !important;
+      align-items: stretch;
+      justify-content: stretch;
+      min-height: 100vh;
+      height: auto;
+      overflow-y: auto;
+      background: linear-gradient(180deg, #0b1220 0%, #060a14 100%);
+    }
+
+    .deck {
+      position: relative;
+      width: 100% !important;
+      height: auto !important;
+      min-height: 100vh;
+      transform: none !important;
+      transform-origin: top left !important;
+      border-radius: 0;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    /* Show ALL slides stacked vertically */
+    .slide {
+      position: relative !important;
+      inset: auto !important;
+      display: flex !important;
+      flex-direction: column;
+      min-height: auto;
+      padding: 36px 18px 28px;
+      border-bottom: 1px solid var(--border);
+      animation: none !important;
+      opacity: 1 !important;
+    }
+
+    .slide.dark {
+      background: linear-gradient(180deg, #061224 0%, #050a16 100%);
+    }
+
+    /* Typography */
+    .title-hero h1 { font-size: 30px; line-height: 1.15; }
+    .title-hero .lead { font-size: 13.5px; max-width: 100%; }
+    .title-hero .badges-row { gap: 6px; flex-wrap: wrap; }
+    .title-hero .stat-row { gap: 14px; flex-wrap: wrap; }
+
+    h2.slide-title { font-size: 22px; line-height: 1.2; }
+    .lead { font-size: 13.5px; line-height: 1.5; max-width: 100%; }
+
+    .stat .num { font-size: 30px; }
+    .stat .lab { font-size: 11px; }
+
+    .card { padding: 14px 14px; }
+    .card h3 { font-size: 14px; }
+    .card p, .card ul, .card li { font-size: 12.5px; line-height: 1.45; }
+
+    /* Grids — stack everything */
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr !important; gap: 10px; }
+    .grid { gap: 10px; }
+
+    /* Architecture pipeline → vertical stack with rotated arrows */
+    .arch { grid-template-columns: 1fr; gap: 8px; }
+    .arch .arrow { transform: rotate(90deg); justify-self: center; margin: 0; }
+
+    /* Slide-top header — stack */
+    .slide-top, .slide-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .slide-num { font-size: 12px; }
+
+    /* Slide footer — relative */
+    .slide-footer {
+      position: relative !important;
+      left: auto !important; right: auto !important; bottom: auto !important;
+      margin-top: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    /* ROI grid */
+    .roi-grid, .grid-roi { grid-template-columns: 1fr 1fr; }
+
+    /* Tables — make them scrollable */
+    table { font-size: 11.5px; }
+    .table-wrap, .scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Timeline / steps stack */
+    .timeline { grid-template-columns: 1fr; gap: 8px; }
+    .timeline .step { padding: 10px 12px; }
+
+    /* Hide arrows used for horizontal step flow on desktop */
+    .timeline .step::after { display: none; }
+
+    /* Stack-row pillish layouts wrap */
+    .pills-row, .badges-row { flex-wrap: wrap; gap: 6px; }
+    .pill { font-size: 11px; padding: 4px 9px; }
+
+    /* Nav controls — compact, top-right floating */
+    .nav-controls {
+      position: fixed;
+      bottom: 12px; right: 12px;
+      background: rgba(13,22,42,0.85);
+      backdrop-filter: blur(10px);
+      padding: 4px 6px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      gap: 4px;
+    }
+    .nav-btn { width: 32px; height: 32px; }
+    .nav-counter { display: none; }
+    .progress { display: none; }
+
+    /* Anything absolutely positioned needs to fall back */
+    .floating, .badge-floating { position: relative; }
+
+    /* SHAP / chart cards — keep scrollable */
+    .shap-bar { font-size: 11px; }
+  }
+
+  /* Mobile landscape: keep scaled deck but tweak nav */
+  @media (max-width: 900px) and (orientation: landscape) {
+    .nav-controls { bottom: 8px; right: 12px; }
+    .nav-btn { width: 32px; height: 32px; }
+  }
 </style>
 </head>
 <body>
@@ -1135,10 +1266,19 @@ let idx = 0;
 const total = slides.length;
 document.getElementById("counterTot").textContent = total;
 
-/* Scale-to-fit deck: 1600x900 logical -> viewport */
+/* Detect mobile portrait (scroll-feed mode) */
+function isMobileFeed() {
+  return window.matchMedia("(max-width: 900px) and (orientation: portrait)").matches;
+}
+
+/* Scale-to-fit deck: 1600x900 logical -> viewport (skip on mobile feed) */
 function fitDeck() {
   const deck = document.getElementById("deck");
   if (!deck) return;
+  if (isMobileFeed()) {
+    deck.style.transform = "none";
+    return;
+  }
   const sx = window.innerWidth / 1600;
   const sy = window.innerHeight / 900;
   const s = Math.min(sx, sy);
@@ -1148,12 +1288,37 @@ window.addEventListener("resize", fitDeck);
 window.addEventListener("orientationchange", fitDeck);
 
 function show(i) {
-  slides[idx].classList.remove("active");
   idx = (i + total) % total;
-  slides[idx].classList.add("active");
+
+  if (isMobileFeed()) {
+    /* On mobile feed all slides are visible — scroll smoothly to target */
+    slides[idx].scrollIntoView({ behavior: "smooth", block: "start" });
+  } else {
+    slides.forEach(s => s.classList.remove("active"));
+    slides[idx].classList.add("active");
+  }
+
   document.getElementById("counterCur").textContent = idx + 1;
   document.getElementById("progressBar").style.width = ((idx+1)/total*100) + "%";
   setTimeout(initChartsForSlide, 50);
+}
+
+/* On mobile feed — observe which slide is in view and update counter */
+function setupMobileFeedObserver() {
+  if (!isMobileFeed()) return;
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting && e.intersectionRatio > 0.5) {
+        const ix = Array.from(slides).indexOf(e.target);
+        if (ix >= 0 && ix !== idx) {
+          idx = ix;
+          document.getElementById("counterCur").textContent = idx + 1;
+          document.getElementById("progressBar").style.width = ((idx+1)/total*100) + "%";
+        }
+      }
+    });
+  }, { threshold: [0.5] });
+  slides.forEach(s => obs.observe(s));
 }
 
 document.getElementById("prevBtn").addEventListener("click", () => show(idx - 1));
@@ -1274,6 +1439,23 @@ function initChartsForSlide() {
 document.addEventListener("DOMContentLoaded", () => {
   fitDeck();
   initChartsForSlide();
+  setupMobileFeedObserver();
+
+  /* Touch swipe (mobile landscape - scaled deck) */
+  let touchStartX = 0, touchStartY = 0;
+  document.addEventListener("touchstart", (e) => {
+    if (isMobileFeed()) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener("touchend", (e) => {
+    if (isMobileFeed()) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+      if (dx < 0) show(idx + 1); else show(idx - 1);
+    }
+  }, { passive: true });
 });
 </script>
 

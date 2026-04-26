@@ -1086,6 +1086,206 @@
 
   /* When login screen is open, hide the app shell */
   body.logged-out .app { display: none; }
+
+  /* ===========================================================
+     RESPONSIVE / MOBILE
+     =========================================================== */
+
+  /* Hamburger button — hidden on desktop */
+  .hamburger {
+    display: none;
+    width: 40px; height: 40px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius: 10px;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .hamburger:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* Backdrop overlay when sidebar is open on mobile */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.5);
+    z-index: 998;
+    opacity: 0;
+    transition: opacity .2s ease;
+  }
+  .sidebar-backdrop.open {
+    display: block;
+    opacity: 1;
+  }
+
+  /* === Tablet / small laptop (≤ 1024px) === */
+  @media (max-width: 1024px) {
+    .topbar .search input { width: 200px; }
+    .doc-chip > div:not(.avatar) { display: none; }
+    .doc-chip { padding: 4px; }
+    main.content { padding: 18px 18px 60px; }
+    .page-header { flex-wrap: wrap; gap: 10px; }
+  }
+
+  /* === Mobile (≤ 768px) === */
+  @media (max-width: 768px) {
+    .app {
+      grid-template-columns: 1fr;
+      grid-template-rows: 56px 1fr;
+      grid-template-areas:
+        "header"
+        "main";
+    }
+
+    /* Sidebar becomes off-canvas drawer */
+    aside.sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 260px;
+      height: 100vh;
+      transform: translateX(-100%);
+      transition: transform .25s ease;
+      z-index: 999;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.25);
+    }
+    aside.sidebar.open { transform: translateX(0); }
+
+    /* Hamburger visible */
+    .hamburger { display: inline-flex; }
+
+    /* Topbar — condensed */
+    header.topbar {
+      padding: 0 12px;
+      gap: 8px;
+    }
+    .topbar .crumb {
+      flex: 1; min-width: 0;
+      font-size: 12px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .topbar .right { gap: 6px; }
+    .topbar .search { display: none; }
+    .topbar .notif-wrap, .topbar-dd-wrap { flex-shrink: 0; }
+    .doc-chip { width: 36px; height: 36px; padding: 0; }
+    .doc-chip .avatar { width: 36px; height: 36px; }
+
+    /* Dropdowns full-width on mobile */
+    .dd, .profile-dd, .search-dropdown {
+      position: fixed !important;
+      top: 64px !important;
+      left: 8px !important;
+      right: 8px !important;
+      width: auto !important;
+      max-width: none !important;
+      max-height: calc(100vh - 80px);
+    }
+
+    /* Page header */
+    .page-header h1 { font-size: 20px; }
+    .page-header p { font-size: 12px; }
+    .page-header .actions {
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .page-header .actions .btn { font-size: 11.5px; padding: 7px 10px; }
+
+    /* Grid */
+    .grid-4 { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-3, .grid-2 { grid-template-columns: 1fr; }
+    .grid { gap: 12px; }
+    .kpi { padding: 12px; }
+    .kpi .value { font-size: 22px; }
+    .card { padding: 14px; }
+
+    /* Main content */
+    main.content { padding: 14px 12px 60px; }
+
+    /* Tables — horizontal scroll */
+    .table-wrap { overflow-x: auto; }
+    .table-toolbar { gap: 6px; padding: 10px 12px; }
+    .table-toolbar .pill { font-size: 11px; padding: 5px 10px; }
+    table.patients { min-width: 720px; }
+    .patients th, .patients td { padding: 10px 12px; font-size: 12px; }
+
+    /* Patient detail */
+    .detail-grid { grid-template-columns: 1fr; gap: 14px; }
+    .patient-card { padding: 16px; }
+    .patient-card .avatar-lg { width: 64px; height: 64px; font-size: 22px; }
+    .patient-card h2 { font-size: 17px; }
+    .meta-grid { grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+    .risk-dial { width: 180px; height: 106px; }
+    .risk-pred .pdc { font-size: 24px; }
+
+    /* Tabs */
+    .tabs { gap: 0; padding-bottom: 0; }
+    .tabs button {
+      padding: 8px 12px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    /* Modals */
+    .modal {
+      width: calc(100vw - 16px) !important;
+      max-width: none;
+      max-height: calc(100vh - 32px);
+      margin: 8px;
+      border-radius: 12px;
+    }
+    .modal-body { padding: 14px 16px; max-height: calc(100vh - 180px); overflow-y: auto; }
+    .modal-header h2 { font-size: 16px; }
+    .modal-footer { padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
+    .modal-footer .btn { flex: 1 1 auto; min-width: 110px; font-size: 12px; }
+
+    /* Toast */
+    .toast {
+      left: 8px !important; right: 8px !important;
+      width: auto !important; max-width: none !important;
+    }
+
+    /* Action buttons stack */
+    .actions { gap: 6px; }
+    .actions .btn { font-size: 11.5px; padding: 7px 10px; }
+
+    /* Login screen */
+    .login-screen { padding: 12px; }
+    .login-card {
+      grid-template-columns: 1fr;
+      min-height: auto;
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
+    }
+    .login-side { padding: 22px 20px; }
+    .login-tagline h2 { font-size: 19px; }
+    .login-tagline p { font-size: 12.5px; }
+    .login-features { font-size: 12px; }
+    .login-foot { font-size: 10.5px; }
+    .login-main { padding: 22px 20px; }
+    .login-main h1 { font-size: 19px; }
+    .demo-doctor { padding: 9px 10px; gap: 8px; }
+    .demo-doctor .avatar { width: 34px; height: 34px; font-size: 12px; }
+    .demo-doctor .info .nm { font-size: 12px; }
+    .demo-doctor .info .sub { font-size: 10.5px; }
+
+    /* Form grid in modals */
+    .form-grid { grid-template-columns: 1fr !important; }
+
+    /* Contact info compact */
+    .contact-info { font-size: 11px; }
+    .contact-info .row { grid-template-columns: 70px 1fr; }
+  }
+
+  /* === Very small phones (≤ 380px) === */
+  @media (max-width: 380px) {
+    .grid-4 { grid-template-columns: 1fr; }
+    .topbar .crumb { font-size: 11px; }
+    .doc-chip { width: 32px; height: 32px; }
+    .doc-chip .avatar { width: 32px; height: 32px; font-size: 10px; }
+    .page-header h1 { font-size: 18px; }
+    .meta-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -1221,8 +1421,14 @@
     </div>
   </aside>
 
+  <!-- ============ SIDEBAR BACKDROP (mobile) ============ -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
   <!-- ============ TOPBAR ============ -->
   <header class="topbar">
+    <button class="hamburger" id="hamburgerBtn" aria-label="Otvori meni">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
     <div class="crumb" id="crumb">Klinički rad &nbsp;›&nbsp; <b>Pregled ordinacije</b></div>
     <div class="right">
       <!-- SEARCH -->
@@ -2286,7 +2492,30 @@ function setView(name, label) {
   window.scrollTo(0, 0);
   setTimeout(initChartsForView, 30);
 }
-navBtns.forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
+navBtns.forEach(b => b.addEventListener("click", () => {
+  setView(b.dataset.view);
+  closeSidebar();
+}));
+
+/* Mobile sidebar drawer */
+function openSidebar() {
+  document.querySelector("aside.sidebar")?.classList.add("open");
+  document.getElementById("sidebarBackdrop")?.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeSidebar() {
+  document.querySelector("aside.sidebar")?.classList.remove("open");
+  document.getElementById("sidebarBackdrop")?.classList.remove("open");
+  document.body.style.overflow = "";
+}
+document.getElementById("hamburgerBtn")?.addEventListener("click", () => {
+  const isOpen = document.querySelector("aside.sidebar")?.classList.contains("open");
+  if (isOpen) closeSidebar(); else openSidebar();
+});
+document.getElementById("sidebarBackdrop")?.addEventListener("click", closeSidebar);
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 768) closeSidebar();
+});
 
 /* Tabs in patient detail */
 document.querySelectorAll(".tab-btn").forEach(btn => {
