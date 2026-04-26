@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>AdhereDM – Sustav podrške adherenciji T2DM | AI4Health.Cro 2026</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root {
     --bg: #f4f7fb;
@@ -298,14 +300,35 @@
     text-align: center;
   }
   .patient-card .avatar-lg {
-    width: 80px; height: 80px; border-radius: 50%;
+    width: 76px; height: 76px; border-radius: 50%;
     background: linear-gradient(135deg, var(--primary), var(--teal));
-    color: #fff; font-size: 28px; font-weight: 700;
+    color: #fff; font-size: 26px; font-weight: 700;
     display: grid; place-items: center;
-    margin: 0 auto 12px;
+    margin: 0 auto 10px;
+    box-shadow: 0 4px 12px rgba(14,109,191,.18);
   }
-  .patient-card h2 { margin: 0; font-size: 18px; }
-  .patient-card .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+  .patient-card h2 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--text);
+  }
+  .patient-card .sub {
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin: 4px 0 0;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .patient-card .sub b { color: var(--text); font-weight: 600; }
+  .patient-card .pd-badges {
+    display: flex; justify-content: center; gap: 6px;
+    flex-wrap: wrap;
+    margin: 10px 0 4px;
+  }
   .meta-grid {
     text-align: left;
     display: grid; grid-template-columns: 1fr 1fr;
@@ -339,17 +362,38 @@
 
   /* Risk dial */
   .risk-dial {
-    text-align: center;
-    margin-top: 8px;
+    position: relative;
+    width: 200px;
+    height: 118px;
+    margin: 14px auto 4px;
   }
-  .risk-dial canvas { max-width: 180px; margin: 0 auto; }
+  .risk-dial canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
   .risk-pred {
-    margin-top: -120px;
-    padding-top: 56px;
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 4px;
+    text-align: center;
     pointer-events: none;
   }
-  .risk-pred .pdc { font-size: 28px; font-weight: 700; }
-  .risk-pred .lbl { color: var(--muted); font-size: 11px; }
+  .risk-pred .pdc {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+  }
+  .risk-pred .lbl {
+    display: block;
+    color: var(--muted);
+    font-size: 10.5px;
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
 
   /* SHAP / Explanation */
   .shap-row {
@@ -407,13 +451,24 @@
   .tabs {
     display: flex; gap: 4px; border-bottom: 1px solid var(--border);
     margin-bottom: 16px;
+    overflow-x: auto;
   }
   .tabs button {
     background: transparent; border: 0; padding: 10px 16px;
     color: var(--muted); font-size: 13px; font-weight: 500;
     border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color .15s, border-color .15s;
   }
+  .tabs button:hover { color: var(--text); }
   .tabs button.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; animation: tabFade .2s ease; }
+  @keyframes tabFade {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
   /* Notes */
   .note {
@@ -439,6 +494,69 @@
   .legend .it { display: flex; align-items: center; gap: 6px; }
   .legend .swatch { width: 10px; height: 10px; border-radius: 2px; }
 
+  /* Patient detail extras */
+  .contact-info {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: var(--panel-2);
+    border-radius: 8px;
+    font-size: 11.5px;
+    color: var(--muted);
+    display: grid;
+    gap: 4px;
+    text-align: left;
+  }
+  .contact-info .row {
+    display: grid;
+    grid-template-columns: 86px 1fr;
+    gap: 6px;
+    align-items: center;
+  }
+  .contact-info .row b { color: var(--text); font-weight: 600; }
+  .contact-info .row span { color: var(--muted); }
+  .comorb-list { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .comorb-list .badge { font-size: 10px; padding: 1px 6px; }
+
+  /* Notes saved list */
+  .saved-note {
+    background: var(--panel-2);
+    border-left: 3px solid var(--primary);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+    position: relative;
+  }
+  .saved-note .meta {
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .saved-note.cezih { border-left-color: var(--green); }
+  .saved-note .delete {
+    background: transparent; border: 0;
+    color: var(--muted); cursor: pointer;
+    font-size: 11px; padding: 0;
+  }
+  .saved-note .delete:hover { color: var(--red); }
+  .saved-note .src {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(14,109,191,.10);
+    color: var(--primary);
+    font-size: 10px; font-weight: 600;
+    margin-right: 6px;
+  }
+  .saved-note.cezih .src {
+    background: rgba(22,163,74,.10);
+    color: var(--green);
+  }
+
   /* Footer disclaimer */
   .disclaimer {
     margin-top: 28px;
@@ -449,9 +567,602 @@
     font-size: 12px;
     border-left: 3px solid #ca8a04;
   }
+
+  /* ========= Dropdown (search/notif/profile) ========= */
+  .topbar-dd-wrap { position: relative; }
+  .dd {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 320px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    z-index: 80;
+    display: none;
+    overflow: hidden;
+  }
+  .dd.open { display: block; animation: ddIn .15s ease; }
+  @keyframes ddIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .dd .dd-header {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; font-weight: 600;
+  }
+  .dd .dd-header .clear {
+    color: var(--primary); font-size: 11px; cursor: pointer; font-weight: 500;
+  }
+  .dd-list {
+    max-height: 360px; overflow-y: auto;
+  }
+  .dd-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+  }
+  .dd-item:hover { background: var(--panel-2); }
+  .dd-item:last-child { border-bottom: 0; }
+  .dd-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    color: #fff; display: grid; place-items: center;
+    font-weight: 600; font-size: 12px;
+    flex-shrink: 0;
+  }
+  .dd-info { flex: 1; min-width: 0; }
+  .dd-name { font-weight: 600; }
+  .dd-sub { color: var(--muted); font-size: 11px; }
+  .dd-empty { padding: 14px; color: var(--muted); font-size: 12px; text-align: center; }
+  .dd-footer {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 12px; color: var(--primary);
+    cursor: pointer;
+  }
+
+  /* search dropdown attached below input */
+  .search { position: relative; }
+  .search .dd { right: 0; left: 0; min-width: 0; top: calc(100% + 4px); }
+
+  /* notif dot */
+  .notif-btn {
+    position: relative;
+    background: transparent; border: 0;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .notif-btn:hover { background: var(--panel-2); color: var(--primary); }
+  .notif-badge {
+    position: absolute; top: 4px; right: 4px;
+    background: var(--red); color: #fff;
+    font-size: 10px; font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 999px;
+    min-width: 14px; text-align: center;
+  }
+  .notif-item {
+    display: grid;
+    grid-template-columns: 8px 1fr;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .notif-item:hover { background: var(--panel-2); }
+  .notif-item.unread { background: #f0f7ff; }
+  .notif-item .pin {
+    width: 8px; height: 8px; border-radius: 50%; margin-top: 6px;
+    background: var(--primary);
+  }
+  .notif-item.red .pin { background: var(--red); }
+  .notif-item.amber .pin { background: var(--amber); }
+  .notif-item.green .pin { background: var(--green); }
+  .notif-item .ttl { font-weight: 600; color: var(--text); }
+  .notif-item .desc { color: var(--muted); }
+  .notif-item .when { color: var(--muted); font-size: 11px; margin-top: 3px; }
+
+  /* doctor dropdown */
+  .doc-chip { cursor: pointer; }
+  .doc-chip:hover { background: #fff; border-color: var(--primary); }
+  .profile-dd .head {
+    padding: 18px 16px;
+    background: linear-gradient(135deg, var(--primary), var(--teal));
+    color: #fff;
+    text-align: center;
+  }
+  .profile-dd .head .avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    display: grid; place-items: center;
+    color: #fff; font-weight: 700; font-size: 20px;
+    margin: 0 auto 10px;
+    border: 3px solid rgba(255,255,255,0.3);
+  }
+  .profile-dd .head .name { font-weight: 700; font-size: 14px; }
+  .profile-dd .head .sub { font-size: 12px; opacity: .85; }
+  .profile-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+  .profile-stats .v { font-weight: 700; font-size: 16px; }
+  .profile-stats .l { color: var(--muted); font-size: 11px; }
+  .profile-actions { padding: 6px 0; }
+  .profile-actions button {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 10px 16px;
+    background: transparent; border: 0;
+    color: var(--text); font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .profile-actions button:hover { background: var(--panel-2); }
+  .profile-actions button.danger { color: var(--red); }
+
+  /* ========= Modal ========= */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,0.55);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 90;
+    padding: 24px;
+    backdrop-filter: blur(2px);
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn .2s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 580px;
+    max-height: 92vh;
+    display: flex; flex-direction: column;
+    animation: modalIn .25s ease;
+  }
+  .modal.large { max-width: 820px; }
+  .modal.xlarge { max-width: 1080px; }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .modal-header {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h2 {
+    margin: 0; font-size: 17px; font-weight: 600;
+  }
+  .modal-header .close {
+    background: transparent; border: 0;
+    width: 30px; height: 30px; border-radius: 8px;
+    cursor: pointer; color: var(--muted);
+    display: grid; place-items: center;
+  }
+  .modal-header .close:hover { background: var(--panel-2); color: var(--text); }
+  .modal-body { padding: 22px; overflow-y: auto; flex: 1; }
+  .modal-footer {
+    padding: 14px 22px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 10px; justify-content: flex-end;
+    background: var(--panel-2);
+  }
+
+  /* Form fields in modals */
+  .form-row { margin-bottom: 14px; }
+  .form-row label {
+    display: block; font-size: 12px; font-weight: 500;
+    color: var(--text); margin-bottom: 6px;
+  }
+  .form-row input[type=text],
+  .form-row input[type=date],
+  .form-row input[type=number],
+  .form-row input[type=time],
+  .form-row select,
+  .form-row textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    background: #fff;
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+    border-color: var(--primary);
+  }
+  .form-row textarea { min-height: 80px; resize: vertical; }
+  .form-row .help { color: var(--muted); font-size: 11px; margin-top: 4px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .checks {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .checks label {
+    display: flex; align-items: flex-start; gap: 8px;
+    cursor: pointer;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 400;
+  }
+  .checks label:hover { background: var(--panel-2); }
+  .checks input { margin-top: 2px; }
+  .checks small { color: var(--muted); display: block; }
+
+  /* CEZIH mock UI */
+  .cezih-frame {
+    background: #f8fafd;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    font-family: "Consolas", monospace;
+    font-size: 12px;
+  }
+  .cezih-frame .cezih-head {
+    background: #073868;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+
+  /* ========= Toast ========= */
+  #toasts {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    display: flex; flex-direction: column; gap: 10px;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .toast {
+    pointer-events: auto;
+    min-width: 280px; max-width: 380px;
+    background: var(--panel);
+    border-left: 4px solid var(--primary);
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+    padding: 12px 16px 12px 14px;
+    font-size: 13px;
+    transform: translateX(440px);
+    transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .25s;
+    opacity: 0;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .toast.show { transform: translateX(0); opacity: 1; }
+  .toast.success { border-left-color: var(--green); }
+  .toast.warn { border-left-color: var(--amber); }
+  .toast.error { border-left-color: var(--red); }
+  .toast .icn {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: rgba(14,109,191,0.10); color: var(--primary);
+    flex-shrink: 0;
+  }
+  .toast.success .icn { background: rgba(22,163,74,0.10); color: var(--green); }
+  .toast.warn .icn { background: rgba(217,119,6,0.10); color: var(--amber); }
+  .toast.error .icn { background: rgba(220,38,38,0.10); color: var(--red); }
+  .toast .ttl { font-weight: 600; }
+  .toast .msg { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .toast .x {
+    background: transparent; border: 0; cursor: pointer;
+    color: var(--muted); padding: 0 4px;
+    align-self: flex-start;
+  }
+
+  .summary-box {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .summary-box b { color: var(--text); }
+
+  /* Recipe-style steps inside modal */
+  .steps-list { padding-left: 0; list-style: none; }
+  .steps-list li {
+    padding: 8px 12px; margin-bottom: 6px;
+    background: var(--panel-2);
+    border-left: 3px solid var(--primary);
+    border-radius: 6px;
+    font-size: 13px;
+  }
+
+  /* ===========================================================
+     LOGIN SCREEN
+     =========================================================== */
+  .login-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(135deg, #0e6dbf 0%, #0aa394 60%, #16a34a 100%);
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    overflow-y: auto;
+  }
+  .login-screen.open { display: flex; }
+  .login-screen::before {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.08), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(255,255,255,.06), transparent 40%);
+    pointer-events: none;
+  }
+  .login-card {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 880px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.25);
+    overflow: hidden;
+    display: grid; grid-template-columns: 1fr 1.1fr;
+    min-height: 540px;
+  }
+  .login-side {
+    background: linear-gradient(160deg, #0e6dbf 0%, #094a85 100%);
+    color: #fff;
+    padding: 36px 32px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    position: relative; overflow: hidden;
+  }
+  .login-side::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 80% 20%, rgba(255,255,255,.15), transparent 40%),
+      radial-gradient(circle at 10% 90%, rgba(255,255,255,.1), transparent 35%);
+  }
+  .login-side > * { position: relative; z-index: 1; }
+  .login-brand {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .login-brand .logo {
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,.15); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 20px;
+    backdrop-filter: blur(4px);
+  }
+  .login-brand .name { font-size: 18px; font-weight: 700; }
+  .login-brand .tag { font-size: 11px; opacity: .85; margin-top: 2px; }
+  .login-tagline h2 {
+    font-size: 26px; font-weight: 700; line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .login-tagline p { font-size: 13px; opacity: .9; line-height: 1.6; }
+  .login-features {
+    display: flex; flex-direction: column; gap: 10px;
+    font-size: 12.5px;
+  }
+  .login-features div {
+    display: flex; align-items: center; gap: 10px;
+    opacity: .92;
+  }
+  .login-features svg {
+    width: 16px; height: 16px;
+    background: rgba(255,255,255,.18); border-radius: 4px;
+    padding: 2px; flex-shrink: 0;
+  }
+  .login-foot {
+    font-size: 11px; opacity: .7; line-height: 1.5;
+  }
+
+  .login-main {
+    padding: 36px 36px 28px;
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+  }
+  .login-main h1 {
+    font-size: 22px; font-weight: 700; margin-bottom: 4px;
+    color: var(--text);
+  }
+  .login-main .subtitle {
+    color: var(--muted); font-size: 13px; margin-bottom: 22px;
+  }
+  .login-form .form-row { margin-bottom: 12px; }
+  .login-form label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--text); margin-bottom: 4px;
+  }
+  .login-form input {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: 13px; box-sizing: border-box;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .login-form input:focus {
+    outline: 0; border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(14,109,191,.15);
+  }
+  .login-form .row-flex {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; margin-bottom: 14px;
+  }
+  .login-form .row-flex label {
+    display: flex; align-items: center; gap: 6px;
+    margin: 0; font-weight: 500; color: var(--muted);
+  }
+  .login-form .row-flex a {
+    color: var(--primary); text-decoration: none;
+  }
+  .login-form .row-flex a:hover { text-decoration: underline; }
+  .btn-login {
+    width: 100%; padding: 11px;
+    background: var(--primary); color: #fff;
+    border: 0; border-radius: 8px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-login:hover { background: #0958a0; }
+
+  .login-divider {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--muted); font-size: 11px;
+    margin: 18px 0 14px;
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .login-divider::before, .login-divider::after {
+    content: ""; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .demo-doctors {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .demo-doctor {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: 10px;
+    cursor: pointer; background: #fff;
+    transition: all .15s;
+    text-align: left;
+  }
+  .demo-doctor:hover {
+    border-color: var(--primary);
+    background: #f0f7ff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(14,109,191,.1);
+  }
+  .demo-doctor .avatar {
+    width: 38px; height: 38px;
+    background: var(--primary); color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 13px;
+    flex-shrink: 0;
+  }
+  .demo-doctor .info { flex: 1; min-width: 0; }
+  .demo-doctor .info .nm {
+    font-size: 13px; font-weight: 600; color: var(--text);
+  }
+  .demo-doctor .info .sub {
+    font-size: 11px; color: var(--muted); margin-top: 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .demo-doctor .arrow { color: var(--muted); }
+  .demo-doctor.featured {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, #eff6ff, #f0fdfa);
+  }
+  .demo-doctor .badge-demo {
+    background: var(--primary); color: #fff;
+    font-size: 10px; padding: 2px 7px; border-radius: 10px;
+    font-weight: 600; letter-spacing: .3px;
+  }
+
+  .login-disclaimer {
+    margin-top: 16px;
+    padding: 8px 10px;
+    background: #fef6e7;
+    border-left: 3px solid var(--amber);
+    border-radius: 6px;
+    font-size: 11px;
+    color: #7c2d12;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 720px) {
+    .login-card { grid-template-columns: 1fr; min-height: auto; }
+    .login-side { padding: 24px; }
+    .login-tagline h2 { font-size: 20px; }
+    .login-main { padding: 24px; }
+  }
+
+  /* When login screen is open, hide the app shell */
+  body.logged-out .app { display: none; }
 </style>
 </head>
 <body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div class="login-screen" id="loginScreen" role="dialog" aria-modal="true">
+  <div class="login-card">
+    <!-- LEFT: brand panel -->
+    <aside class="login-side">
+      <div class="login-brand">
+        <div class="logo">A+</div>
+        <div>
+          <div class="name">AdhereDM</div>
+          <div class="tag">Sustav podrške adherenciji T2DM</div>
+        </div>
+      </div>
+
+      <div class="login-tagline">
+        <h2>Personalizirana podrška za bolju adherenciju kod dijabetesa tipa 2.</h2>
+        <p>Identifikacija pacijenata s rizikom od neadherencije i ciljane intervencije temeljene na OMOP CDM podacima i objašnjivim ML modelima.</p>
+      </div>
+
+      <div class="login-features">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Predikcija PDC ≥ 0.8 nakon 12 mjeseci
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          XAI objašnjenja (SHAP, kontrafaktuali)
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Personalizirani plan intervencija
+        </div>
+      </div>
+
+      <div class="login-foot">
+        AI4Health.Cro 2026 · DEMO verzija<br>
+        Sintetički podaci · nema stvarnih PII-a
+      </div>
+    </aside>
+
+    <!-- RIGHT: form -->
+    <div class="login-main">
+      <h1>Prijava liječnika</h1>
+      <p class="subtitle">CEZIH pristup ili demo račun za testiranje sustava.</p>
+
+      <form class="login-form" id="loginForm" onsubmit="event.preventDefault(); doManualLogin();">
+        <div class="form-row">
+          <label for="loginUser">Korisničko ime (CEZIH ID / OIB)</label>
+          <input id="loginUser" type="text" placeholder="npr. 12345678901" autocomplete="username">
+        </div>
+        <div class="form-row">
+          <label for="loginPass">Lozinka</label>
+          <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div class="row-flex">
+          <label><input type="checkbox" id="loginRemember"> Zapamti me</label>
+          <a href="#" onclick="toast('Zaboravljena lozinka','Kontaktirajte CEZIH helpdesk: 0800-12-345','info'); return false;">Zaboravljena lozinka?</a>
+        </div>
+        <button type="submit" class="btn-login">Prijava</button>
+      </form>
+
+      <div class="login-divider">brza prijava — demo</div>
+
+      <div class="demo-doctors" id="demoDoctorsList">
+        <!-- populated by JS -->
+      </div>
+
+      <div class="login-disclaimer">
+        <b>Demo napomena:</b> ovo je demonstracijska verzija sustava. Sva imena, OIB-ovi, MBO-ovi i medicinski podaci su sintetski generirani. U produkcijskoj verziji prijava ide preko CEZIH-a uz dvofaktorsku autentifikaciju.
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="app">
 
   <!-- ============ SIDEBAR ============ -->
@@ -481,7 +1192,7 @@
         <span class="icn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
         </span>
-        Detalj pacijenta
+        Detalji pacijenata
       </button>
       <button class="nav-btn" data-view="interventions">
         <span class="icn">
@@ -514,18 +1225,73 @@
   <header class="topbar">
     <div class="crumb" id="crumb">Klinički rad &nbsp;›&nbsp; <b>Pregled ordinacije</b></div>
     <div class="right">
-      <div class="search">
-        <input id="searchInput" placeholder="Pretraži pacijente po MBO, imenu, OIB..." />
+      <!-- SEARCH -->
+      <div class="search topbar-dd-wrap">
+        <input id="searchInput" placeholder="Pretraži pacijente po MBO, imenu, drug class..." autocomplete="off" />
+        <div class="dd" id="searchDropdown">
+          <div class="dd-list" id="searchList"></div>
+        </div>
       </div>
-      <button class="btn ghost" title="Obavijesti">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-        <span style="background:var(--red); color:#fff; padding:1px 7px; border-radius:999px; font-size:10px; margin-left:4px">7</span>
-      </button>
-      <div class="doc-chip" title="Liječnik">
-        <div class="avatar">MH</div>
-        <div>
-          <div style="font-weight:600; font-size:12px">dr. Maja Horvat</div>
-          <small>DZ Zagreb-Centar · Ord. 14</small>
+
+      <!-- NOTIFICATIONS -->
+      <div class="topbar-dd-wrap">
+        <button class="notif-btn" id="notifBtn" title="Obavijesti">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span class="notif-badge" id="notifBadge">7</span>
+        </button>
+        <div class="dd" id="notifDropdown">
+          <div class="dd-header">
+            <span>Obavijesti</span>
+            <span class="clear" id="notifClear">Označi sve pročitano</span>
+          </div>
+          <div class="dd-list" id="notifList"></div>
+          <div class="dd-footer" id="notifAll">Pogledaj sve obavijesti</div>
+        </div>
+      </div>
+
+      <!-- DOCTOR PROFILE -->
+      <div class="topbar-dd-wrap">
+        <div class="doc-chip" id="docChip" title="Profil">
+          <div class="avatar" id="docChipAvatar">MH</div>
+          <div>
+            <div style="font-weight:600; font-size:12px" id="docChipName">dr. Maja Horvat</div>
+            <small id="docChipSub">DZ Zagreb-Centar · Ord. 14</small>
+          </div>
+        </div>
+        <div class="dd profile-dd" id="profileDropdown">
+          <div class="head">
+            <div class="avatar" id="docDdAvatar">MH</div>
+            <div class="name" id="docDdName">dr. Maja Horvat, dr. med.</div>
+            <div class="sub" id="docDdSpec">Spec. obiteljske medicine · DZ Zagreb-Centar</div>
+            <div class="sub" id="docDdTeam" style="margin-top:4px">Ordinacija 14 · Tim: M. Kovač (sestra), F. Babić (admin.)</div>
+          </div>
+          <div class="profile-stats">
+            <div><div class="v" id="docStatPatients">218</div><div class="l">pacijenata</div></div>
+            <div><div class="v" id="docStatYears">12</div><div class="l">god. iskustva</div></div>
+            <div><div class="v" id="docStatScore">98%</div><div class="l">CVI ocjena</div></div>
+          </div>
+          <div class="profile-actions">
+            <button onclick="openProfileModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+              Moj profil
+            </button>
+            <button onclick="openSettingsModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Postavke ordinacije
+            </button>
+            <button onclick="openCalendarModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Moj kalendar
+            </button>
+            <button onclick="toast('Pomoć', 'Otvaram dokumentaciju AdhereDM-a...', 'info')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Pomoć i dokumentacija
+            </button>
+            <button class="danger" onclick="confirmLogout()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Odjava
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -542,8 +1308,11 @@
           <p>Stanje adherencije pacijenata s dijabetesom tipa 2 · razdoblje 12 mj.</p>
         </div>
         <div class="actions">
-          <button class="btn">Izvoz izvještaja</button>
-          <button class="btn primary">+ Nova intervencija</button>
+          <button class="btn" onclick="openExportReportModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Izvoz izvještaja
+          </button>
+          <button class="btn primary" onclick="openNewInterventionModal()">+ Nova intervencija</button>
         </div>
       </div>
 
@@ -625,11 +1394,14 @@
       <div class="page-header">
         <div>
           <h1>Lista pacijenata</h1>
-          <p>Sortirano po riziku za neadherenciju u sljedećih 12 mjeseci.</p>
+          <p>Sortirano po riziku za neadherenciju u sljedećih 12 mjeseci. <span id="patientCountInfo" style="color:var(--primary); font-weight:600">Prikazano 218 / 218.</span></p>
         </div>
         <div class="actions">
-          <button class="btn">Izvoz CSV</button>
-          <button class="btn primary">+ Pošalji masivnu poruku</button>
+          <button class="btn" onclick="exportPatientsCSV()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Izvoz CSV
+          </button>
+          <button class="btn primary" onclick="openMassMessageModal()">+ Pošalji masivnu poruku</button>
         </div>
       </div>
 
@@ -641,13 +1413,13 @@
           <button class="pill amber" data-risk="amber">Granično (47)</button>
           <button class="pill green" data-risk="green">Adherentni (126)</button>
           <span style="margin-left:auto; font-size:12px; color:var(--muted)">Drug class:</span>
-          <select style="padding:6px 10px; border-radius:8px; border:1px solid var(--border); font-size:12px">
-            <option>Sve klase</option>
-            <option>Metformin</option>
-            <option>Sulfonilureje</option>
-            <option>SGLT2 inhibitori</option>
-            <option>GLP-1 agonisti</option>
-            <option>DPP-4 inhibitori</option>
+          <select id="drugClassFilter" style="padding:6px 10px; border-radius:8px; border:1px solid var(--border); font-size:12px">
+            <option value="all">Sve klase</option>
+            <option value="Metformin">Metformin</option>
+            <option value="Sulfonilureja">Sulfonilureje</option>
+            <option value="SGLT2 inhibitor">SGLT2 inhibitori</option>
+            <option value="GLP-1 agonist">GLP-1 agonisti</option>
+            <option value="DPP-4 inhibitor">DPP-4 inhibitori</option>
           </select>
         </div>
         <table class="patients" id="patientsTable">
@@ -672,81 +1444,58 @@
     <section class="view" id="view-patient">
       <div class="page-header">
         <div>
+          <p style="color:var(--muted); font-size:12px; margin:0 0 4px; text-transform:uppercase; letter-spacing:.5px; font-weight:500">Detalji pacijenata</p>
           <h1 id="pdName">Marija K.</h1>
           <p id="pdSub">MBO 1234******5 · F · 64 god. · Sulfonilureje + Metformin</p>
         </div>
         <div class="actions">
-          <button class="btn">Vrati se na listu</button>
-          <button class="btn">Poslati SMS podsjetnik</button>
-          <button class="btn">Tel. konzultacija</button>
-          <button class="btn primary">+ Plan intervencije</button>
+          <button class="btn" onclick="setView('patients')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Vrati se na listu
+          </button>
+          <button class="btn" onclick="openSmsModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Poslati SMS podsjetnik
+          </button>
+          <button class="btn" onclick="openTelConsultModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Tel. konzultacija
+          </button>
+          <button class="btn primary" onclick="openInterventionPlanModal()">+ Plan intervencije</button>
         </div>
       </div>
 
-      <div class="alert red">
+      <div id="pdRiskAlert" class="alert red">
         <strong>Visok rizik neadherencije.</strong> Predviđeni PDC nakon 12 mj.: <b>0.54</b>.
-        Glavni driveri: novi početak terapije sulfonilurejama, ≥5 paralelnih lijekova, prethodni izostanak na podizanju recepta.
-        Preporuka: prioritetna obrada u sljedećih 14 dana.
       </div>
 
       <div class="detail-grid">
         <!-- LEFT: Patient summary + risk dial + actions -->
         <div>
           <div class="patient-card">
-            <div class="avatar-lg">MK</div>
+            <div class="avatar-lg" id="pdAvatar">MK</div>
             <h2 id="pdName2">Marija K.</h2>
-            <div class="sub">Pacijentica · ord. 14 · uvedena u T2DM kohortu 03/2025</div>
+            <p class="sub" id="pdCohortSub">Pacijentica · ord. 14 · uvedena u T2DM kohortu 03/2025</p>
 
             <div class="risk-dial">
-              <canvas id="riskGauge" height="180"></canvas>
+              <canvas id="riskGauge"></canvas>
               <div class="risk-pred">
-                <div class="pdc">0.54</div>
-                <div class="lbl">predviđeni PDC (12 mj.)</div>
+                <span class="pdc" id="pdPdcVal">0.54</span>
+                <span class="lbl">predviđeni PDC (12 mj.)</span>
               </div>
             </div>
-            <div style="margin-top:8px">
+            <div class="pd-badges" id="pdBadges">
               <span class="badge red"><span class="dot"></span>VISOK RIZIK</span>
-              <span class="badge blue" style="margin-left:6px">Confidence 87%</span>
+              <span class="badge blue">Confidence 87%</span>
             </div>
 
-            <div class="meta-grid">
-              <div>
-                <div class="label">Dob</div>
-                <div class="val">64 g.</div>
-              </div>
-              <div>
-                <div class="label">Spol</div>
-                <div class="val">Ž</div>
-              </div>
-              <div>
-                <div class="label">HbA1c (zadnji)</div>
-                <div class="val">8.4 %</div>
-              </div>
-              <div>
-                <div class="label">BMI</div>
-                <div class="val">31.2</div>
-              </div>
-              <div>
-                <div class="label">eGFR</div>
-                <div class="val">62</div>
-              </div>
-              <div>
-                <div class="label">Komorbiditeti</div>
-                <div class="val">HTA, depresija</div>
-              </div>
-              <div>
-                <div class="label">Polypharmacy</div>
-                <div class="val">6 lijekova</div>
-              </div>
-              <div>
-                <div class="label">Drug class (start)</div>
-                <div class="val">Sulfonilureja</div>
-              </div>
-            </div>
+            <div class="meta-grid" id="pdMetaGrid"></div>
 
-            <div class="actions" style="justify-content:center">
-              <button class="btn primary">Otvoriti karton CEZIH</button>
-              <button class="btn">Konzultacija (kalendar)</button>
+            <div class="contact-info" id="pdContact"></div>
+
+            <div class="actions" style="justify-content:center; margin-top: 10px">
+              <button class="btn primary" onclick="openCezihModal()">Otvoriti karton CEZIH</button>
+              <button class="btn" onclick="openCalendarModal()">Konzultacija (kalendar)</button>
             </div>
           </div>
         </div>
@@ -769,7 +1518,7 @@
                 <canvas id="chartCurrentPDC" height="160"></canvas>
               </div>
               <div class="card">
-                <h3>Lab. trend <span class="extra">HbA1c, glukoza, krvni tlak</span></h3>
+                <h3>Lab. trend <span class="extra">HbA1c, glukoza natašte</span></h3>
                 <canvas id="chartLab" height="160"></canvas>
               </div>
             </div>
@@ -777,15 +1526,10 @@
               <h3>Sažetak rizika i preporuka</h3>
               <div class="alert blue">
                 <div>
-                  <strong>Klinički sažetak:</strong> Pacijentica je 64-god. žena s tipom 2 dijabetesa (3 god.), HbA1c 8.4 %, depresija u terapiji.
-                  Tri tjedna nakon početka sulfonilureje propušten je posjet ljekarni za podizanje recepta.
-                  Model identificira tri ključna mehanizma rizika: <b>kompleksnost terapije</b>, <b>simptomatska tišina bolesti</b> i <b>depresivna simptomatika</b>.
-                  Preporučena intervencija: <em>strukturirana edukacija + pojednostavljenje terapije + podsjetnička podrška</em>.
+                  <strong>Klinički sažetak:</strong> <span id="pdClinicalSummary"></span>
                 </div>
               </div>
-              <div class="alert amber">
-                Pacijentica ima rizik hipoglikemije (sulfonilureja + dob &gt; 60). Razmotriti zamjenu DPP-4 ili SGLT2 inhibitorom (povoljniji adherencijski profil prema literaturi).
-              </div>
+              <div class="alert amber" id="pdHipoAlert" style="display:none"></div>
             </div>
           </div>
 
@@ -812,13 +1556,7 @@
               <h3>Counterfactual: što ako promijenimo terapiju?</h3>
               <table class="patients">
                 <thead><tr><th>Scenarij</th><th>Predviđeni PDC</th><th>Δ rizik</th></tr></thead>
-                <tbody>
-                  <tr><td>Trenutna terapija (sulfonilureja)</td><td><b>0.54</b></td><td><span class="badge red">visok</span></td></tr>
-                  <tr><td>Zamjena DPP-4 inhibitorom</td><td>0.71</td><td><span class="badge amber">srednji</span></td></tr>
-                  <tr><td>Zamjena SGLT2 inhibitorom (1×/dnevno)</td><td>0.79</td><td><span class="badge green">nisko</span></td></tr>
-                  <tr><td>Trenutna + edukacija + tjedni podsjetnik</td><td>0.74</td><td><span class="badge amber">srednji</span></td></tr>
-                  <tr><td>SGLT2 + edukacija + podsjetnik (kombo)</td><td><b>0.86</b></td><td><span class="badge green">vrlo nisko</span></td></tr>
-                </tbody>
+                <tbody id="pdCounterfactualBody"></tbody>
               </table>
             </div>
           </div>
@@ -831,58 +1569,7 @@
                 Plan generiran kombinacijom kliničkih smjernica (HZJZ, ADA/EASD 2024.) i predikcija modela.
                 Liječnik bira komponente; aplikacija šalje upute, podsjetnike i pamti ishode.
               </p>
-              <div class="interv-list">
-                <div class="interv">
-                  <div class="ic teal">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                  </div>
-                  <div>
-                    <div class="name">Strukturirana edukacija o T2DM (15 min)</div>
-                    <div class="desc">Materijali u laičkom hrvatskom jeziku · video objašnjenje "tihe bolesti" · razgovor o ciljevima HbA1c</div>
-                  </div>
-                  <button class="btn primary">Aktivirati</button>
-                </div>
-                <div class="interv">
-                  <div class="ic">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                  </div>
-                  <div>
-                    <div class="name">SMS podsjetnik za podizanje recepta</div>
-                    <div class="desc">Slanje 3 dana prije isteka zaliha · jezik prilagođen pacijentici · opt-out u 1 kliku</div>
-                  </div>
-                  <button class="btn primary">Aktivirati</button>
-                </div>
-                <div class="interv">
-                  <div class="ic amber">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                  </div>
-                  <div>
-                    <div class="name">Pojednostavljenje terapije (deintensifikacija)</div>
-                    <div class="desc">Razmotriti zamjenu kombinirane sulfonilureje + metformina jednim SGLT2 1×/dnevno · indikacija HbA1c 8.4 % i KV rizik</div>
-                  </div>
-                  <button class="btn">Razmotri</button>
-                </div>
-                <div class="interv">
-                  <div class="ic teal">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  </div>
-                  <div>
-                    <div class="name">Tel. konzultacija s med. sestrom za 7 dana</div>
-                    <div class="desc">Provjera razumijevanja, motivacijski intervju, screening depresivnih simptoma (PHQ-2)</div>
-                  </div>
-                  <button class="btn">Zakazati</button>
-                </div>
-                <div class="interv">
-                  <div class="ic red">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                  </div>
-                  <div>
-                    <div class="name">Upućivanje psihologu (depresivni simptomi)</div>
-                    <div class="desc">e-uput za savjetovalište; opcija digitalne CBT app · obrazloženje u kartonu</div>
-                  </div>
-                  <button class="btn">Pripremi e-uput</button>
-                </div>
-              </div>
+              <div class="interv-list" id="pdIntervList"></div>
             </div>
 
             <div class="card" style="margin-top:14px">
@@ -908,21 +1595,24 @@
             </div>
             <div class="card" style="margin-top:14px">
               <h3>Posljednji događaji</h3>
-              <div class="note"><b>22.04.2026.</b> — Pacijentica nije podigla recept za sulfonilureju (planirano 18.04.). Aktivirana automatska poruka. <div class="by">— Sustav AdhereDM</div></div>
-              <div class="note"><b>10.04.2026.</b> — Konzultacija u ord., razgovor o nuspojavama (mučnina). HbA1c 8.4 %. <div class="by">— dr. M. Horvat</div></div>
-              <div class="note"><b>03.03.2026.</b> — Uvedena sulfonilureja uz metformin (slaba kontrola HbA1c). <div class="by">— dr. M. Horvat</div></div>
-              <div class="note"><b>15.01.2026.</b> — Lab.: HbA1c 8.7 %, eGFR 62, BMI 31.2. <div class="by">— Lab. ZZJZ</div></div>
+              <div id="pdEvents"></div>
             </div>
           </div>
 
           <!-- NOTES TAB -->
           <div class="tab-content" data-tab="notes">
             <div class="card">
-              <h3>Bilješke liječnika</h3>
-              <textarea style="width:100%; min-height:120px; padding:10px; border-radius:8px; border:1px solid var(--border); font-family:inherit; font-size:13px" placeholder="Unesite bilješku..."></textarea>
-              <div class="actions" style="justify-content:flex-end; margin-top:8px">
-                <button class="btn">Spremi privremeno</button>
-                <button class="btn primary">Spremi u CEZIH</button>
+              <h3>Bilješke liječnika <span class="extra" id="pdNotesCount">— pacijent još nema spremljenih bilježaka</span></h3>
+
+              <div id="pdNotesList" style="margin-bottom:14px"></div>
+
+              <textarea id="pdNoteInput" style="width:100%; min-height:120px; padding:10px; border-radius:8px; border:1px solid var(--border); font-family:inherit; font-size:13px" placeholder="Unesite novu bilješku za ovog pacijenta..."></textarea>
+              <div class="actions" style="justify-content:space-between; margin-top:8px; align-items:center">
+                <small style="color:var(--muted)">Bilješke se pohranjuju lokalno (pseudonimizirano po MBO hashu). Tipka "Spremi u CEZIH" simulira upis u službeni karton.</small>
+                <div style="display:flex; gap:8px">
+                  <button class="btn" onclick="saveNoteLocal()">Spremi privremeno</button>
+                  <button class="btn primary" onclick="saveNoteCezih()">Spremi u CEZIH</button>
+                </div>
               </div>
             </div>
           </div>
@@ -938,8 +1628,11 @@
           <p>Standardizirane, kombinabilne komponente — bazirane na podacima ovog natjecanja i smjernicama HZJZ/ADA/EASD.</p>
         </div>
         <div class="actions">
-          <button class="btn">Klinički protokol PDF</button>
-          <button class="btn primary">+ Vlastita intervencija</button>
+          <button class="btn" onclick="downloadProtocolPDF()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Klinički protokol PDF
+          </button>
+          <button class="btn primary" onclick="openCustomInterventionModal()">+ Vlastita intervencija</button>
         </div>
       </div>
 
@@ -1025,7 +1718,10 @@
           <p>Pregled performansi, kalibracije i fairness metrika prediktivnog modela adherencije.</p>
         </div>
         <div class="actions">
-          <button class="btn">Tehnička dok. (PDF)</button>
+          <button class="btn primary" onclick="downloadTechnicalDocPDF()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Tehnička dok. (PDF)
+          </button>
         </div>
       </div>
 
@@ -1075,6 +1771,23 @@
   </main>
 </div>
 
+<!-- ============ MODAL ============ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Naslov</h2>
+      <button class="close" onclick="closeModal()" aria-label="Zatvori">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div id="toasts"></div>
+
 <script>
 /* =====================================================
    Synthetic data and helpers
@@ -1115,45 +1828,438 @@ const interventionStatuses = ["U planu", "Aktivna", "Praćenje 90d", "Završena"
 
 const firstNames = ["Marija", "Ivan", "Ana", "Petar", "Katarina", "Josip", "Luka", "Mirjana", "Nikola", "Vesna", "Stjepan", "Tomislav", "Dragica", "Branka", "Mate", "Ivana", "Damir", "Slavica", "Zlatko", "Ksenija"];
 const lastInitials = ["K.", "P.", "M.", "B.", "J.", "T.", "Š.", "L.", "G.", "Ž.", "R.", "S.", "D.", "F.", "N."];
-const genders = ["M", "Ž"];
+
+const COMORB_OPTIONS = [
+  { code: "HTA", desc: "hipertenzija", icd: "I10" },
+  { code: "DLD", desc: "dislipidemija", icd: "E78.5" },
+  { code: "OBE", desc: "pretilost", icd: "E66.0" },
+  { code: "DEP", desc: "depresija", icd: "F32.1" },
+  { code: "ANX", desc: "anksioznost", icd: "F41.1" },
+  { code: "CKD", desc: "kron. bub. bolest", icd: "N18" },
+  { code: "CV",  desc: "KV događaj", icd: "I25" },
+  { code: "HF",  desc: "srč. insuf.", icd: "I50" },
+];
+
+const COMORB_PROB_BY_AGE = {
+  HTA: a => 0.30 + Math.min(0.55, (a - 35) * 0.012),
+  DLD: a => 0.20 + Math.min(0.45, (a - 35) * 0.010),
+  OBE: () => 0.30,
+  DEP: () => 0.15,
+  ANX: () => 0.10,
+  CKD: a => Math.min(0.30, Math.max(0, (a - 50) * 0.012)),
+  CV:  a => Math.min(0.25, Math.max(0, (a - 55) * 0.012)),
+  HF:  a => Math.min(0.15, Math.max(0, (a - 60) * 0.010)),
+};
+
+const STREETS = ["Ilica", "Vlaška", "Trešnjevačka", "Maksimirska", "Avenija Dubrovnik", "Selska", "Branimirova", "Zagrebačka", "Aleja Lipa", "Petrova", "Heinzelova", "Vukovarska"];
+
+function makeOIB(id) {
+  let s = (1000000000 + id * 7919) % 9999999999;
+  return ("0000000000" + s).slice(-11);
+}
+function makeMBO(id) {
+  return "1" + ("000000" + (id * 14723) % 1000000).slice(-6) + "789";
+}
+function makePhone(id) {
+  const n = 100000 + (id * 7777) % 800000;
+  return "+385 91 " + Math.floor(n / 1000) + " " + (n % 1000).toString().padStart(3, "0");
+}
+function makeAddress(id, rngL) {
+  const street = STREETS[id % STREETS.length];
+  const num = 1 + Math.floor(rngL() * 120);
+  return `${street} ${num}, 10000 Zagreb`;
+}
+
+/* deterministic seeded RNG per-patient */
+function rand2(seed) {
+  let s = seed % 233280;
+  return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+}
+
+function pickComorbs(age, dc, rngL) {
+  const out = [];
+  for (const c of COMORB_OPTIONS) {
+    const p = COMORB_PROB_BY_AGE[c.code](age);
+    if (rngL() < p) out.push(c);
+  }
+  // ensure at least 1 comorbidity for older patients
+  if (out.length === 0 && age >= 55) out.push(COMORB_OPTIONS[0]);
+  return out;
+}
+
+function genPdcHistory(pdcEnd, sex, age, rngL) {
+  // 8 točaka (≈ kvartali), počinje viši, završava na pdcEnd
+  const start = Math.min(0.95, pdcEnd + 0.20 + rngL() * 0.20);
+  const arr = [];
+  for (let i = 0; i < 8; i++) {
+    const t = i / 7;
+    const noise = (rngL() - 0.5) * 0.08;
+    arr.push(Math.max(0.20, Math.min(0.99, start + (pdcEnd - start) * t + noise)));
+  }
+  arr[7] = +pdcEnd.toFixed(2);
+  return arr.map(x => +x.toFixed(2));
+}
+
+function genHba1cHistory(hba1cEnd, pdc, rngL) {
+  // 6 točaka, hba1c korelira inverzno s PDC-om (lošija adherencija → viši HbA1c)
+  const drift = pdc < 0.6 ? -0.8 : pdc < 0.8 ? -0.3 : 0.1;
+  const start = Math.max(5.5, hba1cEnd + drift + (rngL() - 0.5) * 0.4);
+  const arr = [];
+  for (let i = 0; i < 6; i++) {
+    const t = i / 5;
+    arr.push(start + (hba1cEnd - start) * t + (rngL() - 0.5) * 0.15);
+  }
+  arr[5] = +hba1cEnd;
+  return arr.map(x => +x.toFixed(1));
+}
+
+function genGlukozaHistory(hba1cArr) {
+  // glukoza ≈ 1.59 * HbA1c - 2.59 (orijentacijski)
+  return hba1cArr.map(h => +(1.55 * h - 2.6 + (h > 8 ? 0.3 : 0)).toFixed(1));
+}
+
+function genCurrentPdcWeekly(pdcEnd, rngL) {
+  // 8 tjedana, blago opadanje k pdcEnd
+  const start = Math.min(0.95, pdcEnd + 0.20 + rngL() * 0.10);
+  const arr = [];
+  for (let i = 0; i < 8; i++) {
+    const t = i / 7;
+    arr.push(start + (pdcEnd - start) * Math.pow(t, 0.9) + (rngL() - 0.5) * 0.05);
+  }
+  arr[7] = +pdcEnd.toFixed(2);
+  return arr.map(x => +Math.max(0.10, Math.min(0.99, x)).toFixed(2));
+}
+
+function genFollowupWithPlan(pdcStart, comorbs, rngL) {
+  // PDC s planom 5 točaka (0d, 14d, 30d, 60d, 90d)
+  const targetGain = 0.30 - 0.04 * comorbs.length; // više komorbiditeta → manji gain
+  const target = Math.min(0.92, pdcStart + Math.max(0.18, targetGain));
+  return [
+    pdcStart,
+    +(pdcStart + (target - pdcStart) * 0.30).toFixed(2),
+    +(pdcStart + (target - pdcStart) * 0.55).toFixed(2),
+    +(pdcStart + (target - pdcStart) * 0.80).toFixed(2),
+    +target.toFixed(2),
+  ];
+}
+
+function genFollowupNoPlan(pdcStart) {
+  // bez intervencije, blago opadanje
+  return [
+    pdcStart,
+    +Math.max(0.20, pdcStart - 0.02).toFixed(2),
+    +Math.max(0.20, pdcStart - 0.04).toFixed(2),
+    +Math.max(0.20, pdcStart - 0.06).toFixed(2),
+    +Math.max(0.20, pdcStart - 0.09).toFixed(2),
+  ];
+}
+
+function genShapLocal(p) {
+  // Gradi listu doprinosa baziranu na konkretnim atributima pacijenta.
+  const items = [];
+
+  // Drug class
+  const dcEffect = {
+    "Sulfonilureja": +0.11, "Metformin": -0.05, "SGLT2 inhibitor": -0.03,
+    "GLP-1 agonist": -0.02, "DPP-4 inhibitor": -0.01,
+  }[p.dc] ?? 0;
+  if (Math.abs(dcEffect) > 0.005) {
+    items.push({ feature: `Drug class: ${p.dc} (start)`, impact: dcEffect, dir: dcEffect > 0 ? "pos" : "neg" });
+  }
+
+  // Polypharmacy
+  if (p.polypharmacy >= 5) {
+    items.push({ feature: `Polypharmacy: ${p.polypharmacy} paralelnih lijekova`, impact: +0.04 + 0.012 * (p.polypharmacy - 4), dir: "pos" });
+  } else {
+    items.push({ feature: `Polypharmacy: ${p.polypharmacy} lijeka`, impact: -0.02, dir: "neg" });
+  }
+
+  // Komorbiditeti
+  const hasDep = p.comorbs.some(c => c.code === "DEP");
+  const hasAnx = p.comorbs.some(c => c.code === "ANX");
+  if (hasDep) items.push({ feature: "Depresivna simptomatika (F32)", impact: +0.07, dir: "pos" });
+  if (hasAnx) items.push({ feature: "Anksioznost (F41)", impact: +0.04, dir: "pos" });
+  if (p.comorbs.some(c => c.code === "CKD")) items.push({ feature: "Kronična bubrežna bolest", impact: +0.03, dir: "pos" });
+  if (p.comorbs.some(c => c.code === "CV"))  items.push({ feature: "Prijašnji KV događaj", impact: +0.03, dir: "pos" });
+
+  // Prošla adherencija (proxy: trenutni PDC)
+  if (p.pdc < 0.6) {
+    items.push({ feature: "Propušteno podizanje recepta (90d)", impact: +0.06, dir: "pos" });
+  } else if (p.pdc >= 0.8) {
+    items.push({ feature: "Stabilna adherencija u prošlim ciklusima", impact: -0.06, dir: "neg" });
+  }
+
+  // Dob
+  if (p.age >= 65) items.push({ feature: `Dob ${p.age} g.`, impact: +0.02, dir: "pos" });
+  else if (p.age < 50) items.push({ feature: `Mlađa dob (${p.age} g.)`, impact: -0.02, dir: "neg" });
+
+  // HbA1c
+  const hb = +p.hba1c;
+  if (hb >= 8) items.push({ feature: `HbA1c ${hb} %`, impact: +0.02, dir: "pos" });
+  else if (hb < 7) items.push({ feature: `HbA1c ${hb} % (dobro kontrolirano)`, impact: -0.03, dir: "neg" });
+
+  // Posjeti LOM-u
+  if (p.visits180d >= 4) items.push({ feature: `Broj posjeta LOM-u (${p.visits180d} u 6 mj.)`, impact: -0.04, dir: "neg" });
+  else if (p.visits180d <= 1) items.push({ feature: `Slabi kontinuitet skrbi (${p.visits180d} posjet u 6 mj.)`, impact: +0.03, dir: "pos" });
+
+  // BMI
+  if (+p.bmi >= 35) items.push({ feature: `BMI ${p.bmi}`, impact: +0.02, dir: "pos" });
+
+  // sortiraj po jakosti
+  items.sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
+  return items.slice(0, 8);
+}
+
+function genCounterfactuals(p) {
+  // What-if scenariji bazirani na trenutnom PDC-u i drug classu
+  const base = p.pdc;
+  const opts = [];
+  opts.push({ scenario: `Trenutna terapija (${p.dc})`, pdc: base });
+
+  // Pojednostavljenje terapije
+  if (p.dc === "Sulfonilureja") {
+    opts.push({ scenario: "Zamjena DPP-4 inhibitorom",   pdc: Math.min(0.92, base + 0.17) });
+    opts.push({ scenario: "Zamjena SGLT2 inhibitorom (1×/dnevno)", pdc: Math.min(0.93, base + 0.25) });
+  } else if (p.dc === "Metformin" && p.polypharmacy >= 5) {
+    opts.push({ scenario: "Fiksna kombinacija metformin + SGLT2 (1×)", pdc: Math.min(0.94, base + 0.18) });
+    opts.push({ scenario: "Dodavanje GLP-1 1×/tjedno", pdc: Math.min(0.92, base + 0.12) });
+  } else {
+    opts.push({ scenario: "Pojednostavljenje na 1×/dnevno (ako moguće)", pdc: Math.min(0.94, base + 0.14) });
+    opts.push({ scenario: "Fiksna kombinacija (smanjenje broja tableta)", pdc: Math.min(0.95, base + 0.18) });
+  }
+
+  // Edukacija + nudge
+  opts.push({ scenario: "Trenutna + edukacija + tjedni podsjetnik", pdc: Math.min(0.93, base + 0.16) });
+
+  // Najbolji kombinirani scenarij
+  opts.push({ scenario: "Pojednostavljenje + edukacija + nudge (paket)", pdc: Math.min(0.96, base + 0.30) });
+
+  return opts.map(o => ({ ...o, pdc: +o.pdc.toFixed(2) }));
+}
+
+function genClinicalSummary(p) {
+  const sex = p.sex === "Ž" ? "žena" : "muškarac";
+  const sexLong = p.sex === "Ž" ? "Pacijentica" : "Pacijent";
+  const articleNew = p.sex === "Ž" ? "uvedena" : "uveden";
+  const yearsT2DM = 1 + (p.id % 5);
+  const comorbDesc = p.comorbs.length === 0 ? "bez značajnih komorbiditeta" : "uz komorbiditete: " + p.comorbs.map(c => c.desc).join(", ");
+
+  let mech = [];
+  if (p.polypharmacy >= 5) mech.push("kompleksnost terapije");
+  if (p.bucket === "red" && +p.hba1c < 8) mech.push("simptomatska tišina bolesti");
+  if (p.comorbs.some(c => c.code === "DEP")) mech.push("depresivna simptomatika");
+  if (p.dc === "Sulfonilureja" && p.age >= 60) mech.push("rizik hipoglikemije zbog sulfonilureje");
+  if (mech.length === 0) {
+    if (p.bucket === "red") mech.push("nepoznati ali dominantni driveri rizika (vidi SHAP profil)");
+    else if (p.bucket === "amber") mech.push("granični profil rizika");
+    else mech.push("povoljan profil adherencije");
+  }
+
+  let recommend;
+  if (p.bucket === "red") {
+    recommend = "<em>strukturirana edukacija + pojednostavljenje terapije + podsjetnička podrška</em>";
+  } else if (p.bucket === "amber") {
+    recommend = "<em>edukacija + SMS podsjetnik (po potrebi pojednostavljenje terapije)</em>";
+  } else {
+    recommend = "<em>standardno praćenje s godišnjom kontrolom adherencije</em>";
+  }
+
+  return `${sexLong} je ${p.age}-god. ${sex} s tipom 2 dijabetesa (${yearsT2DM} god.), HbA1c ${p.hba1c} %, ${comorbDesc}. ${articleNew[0].toUpperCase()+articleNew.slice(1)} u kohortu pomoću terapije <b>${p.dc}</b>; trenutni PDC: <b>${p.pdc.toFixed(2)}</b>. Model identificira ključne mehanizme rizika: <b>${mech.join("</b>, <b>")}</b>. Preporučena intervencija: ${recommend}.`;
+}
+
+function genHipoAlert(p) {
+  if (p.dc === "Sulfonilureja" && p.age >= 60) {
+    return "Pacijent ima rizik hipoglikemije (sulfonilureja + dob > 60). Razmotriti zamjenu DPP-4 ili SGLT2 inhibitorom (povoljniji adherencijski i KV profil).";
+  }
+  if (p.comorbs.some(c => c.code === "CKD") && p.dc === "Metformin") {
+    return "Bubrežna funkcija (eGFR " + p.egfr + ") na granici za metformin (eGFR < 30 → kontraindikacija). Preporučuje se redovita kontrola eGFR.";
+  }
+  if (p.comorbs.some(c => c.code === "HF") && p.dc !== "SGLT2 inhibitor") {
+    return "Pacijent sa srčanom insuficijencijom — SGLT2 inhibitori imaju dokazanu KV korist (SOLOIST, EMPEROR-Reduced).";
+  }
+  if (p.polypharmacy >= 7) {
+    return "Visoka razina polypharmacy (" + p.polypharmacy + " lijekova). Razmotriti deprescribing prema STOPP/START kriterijima i ljekarničku reviziju.";
+  }
+  return null;
+}
+
+function genEvents(p) {
+  // Dinamičko generiranje povijesnih događaja
+  const today = new Date(2026, 3, 26); // 26.04.2026
+  const fmt = d => `${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}.`;
+  const days = (n) => { const d = new Date(today); d.setDate(d.getDate() - n); return fmt(d); };
+
+  const events = [];
+  if (p.bucket === "red") {
+    events.push({ date: days(4), text: `${p.sex==='Ž'?'Pacijentica nije':'Pacijent nije'} ${p.sex==='Ž'?'podigla':'podigao'} recept za <b>${p.dc.toLowerCase()}</b> (planirano ${days(8)}). Aktivirana automatska poruka.`, by: "Sustav AdhereDM" });
+  } else if (p.bucket === "amber") {
+    events.push({ date: days(7), text: `Granični propust: kasno podizanje recepta za <b>${p.dc.toLowerCase()}</b> (5 dana zakašnjenja).`, by: "Sustav AdhereDM" });
+  } else {
+    events.push({ date: days(7), text: `Redovno podignut recept za <b>${p.dc.toLowerCase()}</b>. Adherencija u zelenoj zoni.`, by: "Sustav AdhereDM" });
+  }
+  events.push({ date: days(16), text: `Konzultacija u ord., razgovor o ${p.comorbs.some(c=>c.code==='DEP') ? "raspoloženju i" : ""} terapiji. HbA1c ${p.hba1c} %.`, by: "dr. M. Horvat" });
+  events.push({ date: days(54), text: `${p.dc==='Metformin' ? "Inicirana monoterapija" : "Promjena terapije: dodan/uveden"} <b>${p.dc.toLowerCase()}</b> ${p.dc==='Metformin' ? "kao prva linija" : "uz postojeću terapiju (slaba kontrola HbA1c)"}.`, by: "dr. M. Horvat" });
+  events.push({ date: days(101), text: `Lab.: HbA1c ${(+p.hba1c + 0.3).toFixed(1)} %, eGFR ${p.egfr}, BMI ${p.bmi}.`, by: "Lab. ZZJZ" });
+  if (p.comorbs.some(c=>c.code==='DEP')) {
+    events.push({ date: days(140), text: `Postavljena dijagnoza <b>F32.1 — depresivna epizoda</b>. Uveden sertralin 50 mg.`, by: "dr. M. Horvat" });
+  }
+  if (p.comorbs.some(c=>c.code==='HTA')) {
+    events.push({ date: days(180), text: `Reguliran krvni tlak ramipril 5 mg.`, by: "dr. M. Horvat" });
+  }
+  return events;
+}
+
+function genRecommendedInterventions(p) {
+  // Vraća listu intervencija s ID-em, pa će frontend renderiranje znati
+  const items = [];
+  // Edukacija — uvijek za visok rizik i graničan
+  if (p.bucket === "red" || p.bucket === "amber") {
+    items.push({ id: "edukacija", icon: "teal", svg: "book", name: "Strukturirana edukacija o T2DM (15 min)", desc: 'Materijali u laičkom hrvatskom jeziku · video objašnjenje "tihe bolesti" · razgovor o ciljevima HbA1c', cta: "Aktivirati", primary: true, action: "activate" });
+  }
+  // SMS — visok ili pad podizanja
+  if (p.bucket !== "green") {
+    items.push({ id: "sms", icon: "blue", svg: "msg", name: "SMS podsjetnik za podizanje recepta", desc: `Slanje 3 dana prije isteka zaliha · jezik prilagođen ${p.sex==='Ž'?'pacijentici':'pacijentu'} · opt-out u 1 kliku`, cta: "Aktivirati", primary: true, action: "activate" });
+  }
+  // Pojednostavljenje terapije
+  if (p.polypharmacy >= 5 || p.dc === "Sulfonilureja") {
+    const rationale = p.dc === "Sulfonilureja"
+      ? `Razmotriti zamjenu sulfonilureje SGLT2 ili DPP-4 inhibitorom (${p.age >= 60 ? 'dob > 60 = rizik hipo' : 'KV profil bolji'} · HbA1c ${p.hba1c} %)`
+      : `Razmotriti fiksnu kombinaciju ili zamjenu visokorizičnih klasa (${p.polypharmacy} paralelnih lijekova)`;
+    items.push({ id: "depresc", icon: "amber", svg: "lightning", name: "Pojednostavljenje terapije (deintensifikacija)", desc: rationale, cta: "Razmotri", primary: false, action: "deintensify" });
+  }
+  // Sestrinski follow-up
+  if (p.bucket === "red" || (p.bucket === "amber" && p.comorbs.length >= 2)) {
+    items.push({ id: "nurse", icon: "teal", svg: "phone", name: "Tel. konzultacija s med. sestrom za 7 dana", desc: "Provjera razumijevanja, motivacijski intervju" + (p.comorbs.some(c=>c.code==='DEP')?", screening depresivnih simptoma (PHQ-2)":""), cta: "Zakazati", primary: false, action: "nurse" });
+  }
+  // Psihološka podrška
+  if (p.comorbs.some(c => c.code === "DEP" || c.code === "ANX")) {
+    items.push({ id: "psy", icon: "red", svg: "heart", name: "Upućivanje psihologu (depresivni/anksiozni simptomi)", desc: "e-uput za savjetovalište; opcija digitalne CBT app · obrazloženje u kartonu", cta: "Pripremi e-uput", primary: false, action: "euput" });
+  }
+  // Ljekarnička podrška za polypharmacy
+  if (p.polypharmacy >= 6) {
+    items.push({ id: "pharm", icon: "blue", svg: "pill", name: "Ljekarnička podrška (Medication Therapy Management)", desc: `Pregled blister-pakiranja, kratka edukacija pri izdavanju, povratna informacija. Indikacija: ${p.polypharmacy} paralelnih lijekova.`, cta: "Aktivirati", primary: true, action: "activate" });
+  }
+  // Standardno praćenje za adherentne
+  if (p.bucket === "green") {
+    items.push({ id: "standard", icon: "teal", svg: "check", name: "Standardno praćenje adherencije", desc: "PDC nadzor svakih 90 dana · godišnja kontrola HbA1c · pojačan nadzor pri promjeni terapije", cta: "U toku", primary: false, action: "standard" });
+  }
+  return items;
+}
 
 function makePatients(n) {
   const out = [];
   for (let i = 0; i < n; i++) {
-    const age = 35 + Math.floor(rng() * 50);
-    const sex = rng() < 0.52 ? "Ž" : "M";
-    const dc = pickWeighted(drugClasses, [0.42, 0.18, 0.16, 0.10, 0.14]);
+    const id = i + 1;
+    const seed = 42 + id * 7919;
+    const rngL = rand2(seed);
+
+    const age = 35 + Math.floor(rngL() * 50);
+    const sex = rngL() < 0.52 ? "Ž" : "M";
+    const dc = pickWeightedL(drugClasses, [0.42, 0.18, 0.16, 0.10, 0.14], rngL);
+
     let pdc;
-    const r = rng();
-    if (r < 0.20) pdc = 0.30 + rng() * 0.30;
-    else if (r < 0.42) pdc = 0.60 + rng() * 0.20;
-    else pdc = 0.80 + rng() * 0.18;
-    const reason = reasons[Math.floor(rng() * reasons.length)];
+    const r = rngL();
+    if (r < 0.20) pdc = 0.30 + rngL() * 0.30;
+    else if (r < 0.42) pdc = 0.60 + rngL() * 0.20;
+    else pdc = 0.80 + rngL() * 0.18;
+    pdc = +pdc.toFixed(2);
+
+    const reason = reasons[Math.floor(rngL() * reasons.length)];
     let bucket;
     if (pdc < 0.6) bucket = "red";
     else if (pdc < 0.8) bucket = "amber";
     else bucket = "green";
-    const interv = pickWeighted(interventionStatuses, [0.15, 0.25, 0.20, 0.15, 0.25]);
-    const fname = firstNames[Math.floor(rng() * firstNames.length)];
-    const linit = lastInitials[Math.floor(rng() * lastInitials.length)];
-    const days = Math.floor(rng() * 60) + 1;
-    out.push({
-      id: i + 1,
+
+    const interv = pickWeightedL(interventionStatuses, [0.15, 0.25, 0.20, 0.15, 0.25], rngL);
+    const fname = firstNames[Math.floor(rngL() * firstNames.length)];
+    const linit = lastInitials[Math.floor(rngL() * lastInitials.length)];
+    const days = Math.floor(rngL() * 60) + 1;
+    const hba1c = +(6.5 + rngL() * 3).toFixed(1);
+    const bmi = +(24 + rngL() * 12).toFixed(1);
+
+    const comorbs = pickComorbs(age, dc, rngL);
+    const polypharmacy = Math.min(9, 1 + comorbs.length + (rngL() < 0.4 ? 2 : 0) + (dc !== "Metformin" ? 1 : 0));
+    const egfr = Math.max(28, Math.round(110 - (age - 35) * 0.8 - (comorbs.some(c=>c.code==='CKD') ? 28 : 0) - rngL() * 10));
+    const visits180d = 1 + Math.floor(rngL() * 6);
+    const confidence = Math.round(75 + rngL() * 22);
+
+    const cohortStart = "0" + (1 + Math.floor(rngL() * 9)) + "/202" + (3 + Math.floor(rngL() * 3));
+    const oib = makeOIB(id);
+    const mbo = makeMBO(id);
+    const phone = makePhone(id);
+    const address = makeAddress(id, rngL);
+
+    const pdcHistory = genPdcHistory(pdc, sex, age, rngL);
+    const hba1cHistory = genHba1cHistory(hba1c, pdc, rngL);
+    const glukozaHistory = genGlukozaHistory(hba1cHistory);
+    const currentPdcWeekly = genCurrentPdcWeekly(pdc, rngL);
+    const followupWithPlan = genFollowupWithPlan(pdc, comorbs, rngL);
+    const followupNoPlan = genFollowupNoPlan(pdc);
+
+    const p = {
+      id,
       name: `${fname} ${linit}`,
-      sex, age, dc, pdc,
-      bucket,
-      reason,
-      interv,
+      sex, age, dc, pdc, bucket, reason, interv,
       next: `za ${days} dana`,
-      hba1c: (6.5 + rng() * 3).toFixed(1),
-      bmi: (24 + rng() * 12).toFixed(1),
-    });
+      hba1c, bmi,
+      comorbs,
+      polypharmacy,
+      egfr,
+      visits180d,
+      confidence,
+      cohortStart,
+      oib, mbo, phone, address,
+      pdcHistory,
+      hba1cHistory,
+      glukozaHistory,
+      currentPdcWeekly,
+      followupWithPlan,
+      followupNoPlan,
+      notes: [],
+    };
+    p.shapLocal = genShapLocal(p);
+    p.counterfactuals = genCounterfactuals(p);
+    p.clinicalSummary = genClinicalSummary(p);
+    p.hipoAlert = genHipoAlert(p);
+    p.events = genEvents(p);
+    p.recommendedInterventions = genRecommendedInterventions(p);
+
+    out.push(p);
   }
   out.sort((a, b) => a.pdc - b.pdc);
   return out;
 }
 
+function pickWeightedL(items, weights, rngL) {
+  const r = rngL();
+  let acc = 0;
+  for (let i = 0; i < items.length; i++) {
+    acc += weights[i];
+    if (r < acc) return items[i];
+  }
+  return items[items.length - 1];
+}
+
 const PATIENTS = makePatients(218);
+let currentPatient = null;
+
+/* LocalStorage notes (per-MBO, ne identifikatori) */
+const NOTES_KEY = "adheredm.notes.v1";
+function loadNotesStore() {
+  try { return JSON.parse(localStorage.getItem(NOTES_KEY) || "{}"); } catch { return {}; }
+}
+function saveNotesStore(store) {
+  try { localStorage.setItem(NOTES_KEY, JSON.stringify(store)); } catch {}
+}
+function loadNotesForPatient(p) {
+  const store = loadNotesStore();
+  return store[p.mbo] || [];
+}
+function saveNotesForPatient(p, notes) {
+  const store = loadNotesStore();
+  store[p.mbo] = notes;
+  saveNotesStore(store);
+}
 
 /* =====================================================
    Navigation
@@ -1161,12 +2267,16 @@ const PATIENTS = makePatients(218);
 const navBtns = document.querySelectorAll(".nav-btn");
 const views = document.querySelectorAll(".view");
 function setView(name, label) {
+  if (name === "patient" && !currentPatient) {
+    openPatient(PATIENTS[0]);
+    return;
+  }
   navBtns.forEach(b => b.classList.toggle("active", b.dataset.view === name));
   views.forEach(v => v.classList.toggle("active", v.id === "view-" + name));
   const labelMap = {
     dashboard: ["Klinički rad", "Pregled ordinacije"],
     patients: ["Klinički rad", "Lista pacijenata"],
-    patient: ["Klinički rad", "Detalj pacijenta"],
+    patient: ["Klinički rad", "Detalji pacijenata"],
     interventions: ["Klinički rad", "Intervencije"],
     cohort: ["Analitika", "Kohortna analitika"],
     model: ["Analitika", "Model i kvaliteta"],
@@ -1184,7 +2294,32 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
     document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
     document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
     btn.classList.add("active");
-    document.querySelector(`.tab-content[data-tab='${btn.dataset.tab}']`).classList.add("active");
+    const tab = btn.dataset.tab;
+    document.querySelector(`.tab-content[data-tab='${tab}']`).classList.add("active");
+
+    // Re-render dynamic content for current patient (non-chart parts)
+    if (currentPatient) {
+      try {
+        if (tab === "overview") {
+          renderRiskAlert(currentPatient);
+          renderClinicalSummary(currentPatient);
+          renderHipoAlert(currentPatient);
+        } else if (tab === "explain") {
+          renderShapLocal();
+          renderCounterfactuals(currentPatient);
+        } else if (tab === "interv") {
+          renderInterventionsList(currentPatient);
+        } else if (tab === "history") {
+          renderEvents(currentPatient);
+        } else if (tab === "notes") {
+          renderNotes(currentPatient);
+        }
+      } catch (e) {
+        console.warn("Tab render error:", e);
+      }
+    }
+
+    // Charts (need next tick so the tab-content becomes display:block first)
     setTimeout(initChartsForView, 30);
   });
 });
@@ -1231,16 +2366,247 @@ function bindFilterPills() {
     p.addEventListener("click", () => {
       document.querySelectorAll(".pill[data-risk]").forEach(x => x.classList.remove("active"));
       p.classList.add("active");
-      renderPatientsTable(p.dataset.risk);
+      applyPatientsFilters();
     });
   });
 }
 
 function openPatient(p) {
+  currentPatient = p;
+  // Učitaj spremljene bilješke iz localStorage
+  p.notes = loadNotesForPatient(p);
+
+  // Header
   document.getElementById("pdName").textContent = p.name;
   document.getElementById("pdName2").textContent = p.name;
-  document.getElementById("pdSub").textContent = `MBO ****${(1000+p.id).toString().slice(-4)} · ${p.sex} · ${p.age} g. · ${p.dc} (start)`;
+  document.getElementById("pdSub").textContent = `MBO ${maskMBO(p.mbo)} · ${p.sex} · ${p.age} g. · ${p.dc} (start)`;
+
+  // Avatar inicijali
+  document.getElementById("pdAvatar").textContent = initialsOf(p.name);
+
+  // Risk alert (red/amber/green)
+  renderRiskAlert(p);
+
+  // Cohort sub (sex-aware + dynamic ordination from logged-in doctor)
+  const sexNoun = p.sex === "Ž" ? "Pacijentica" : "Pacijent";
+  const introVerb = p.sex === "Ž" ? "uvedena" : "uveden";
+  const ordMatch = (CURRENT_DOCTOR && CURRENT_DOCTOR.chipSub) ? CURRENT_DOCTOR.chipSub.match(/Ord\.\s*\d+/i) : null;
+  const ordLabel = ordMatch ? ordMatch[0].toLowerCase() : "ord. 14";
+  document.getElementById("pdCohortSub").innerHTML =
+    `<b>${sexNoun}</b> · ${ordLabel} · ${introVerb} u T2DM kohortu <b>${p.cohortStart}</b>`;
+
+  // PDC value + badges
+  document.getElementById("pdPdcVal").textContent = p.pdc.toFixed(2);
+  const badgeCls = p.bucket === "red" ? "red" : p.bucket === "amber" ? "amber" : "green";
+  const badgeLbl = p.bucket === "red" ? "VISOK RIZIK" : p.bucket === "amber" ? "GRANIČNI RIZIK" : "ADHERENTAN";
+  document.getElementById("pdBadges").innerHTML = `
+    <span class="badge ${badgeCls}"><span class="dot"></span>${badgeLbl}</span>
+    <span class="badge blue">Confidence ${p.confidence}%</span>
+  `;
+
+  // Meta-grid
+  const comorbHtml = p.comorbs.length === 0
+    ? `<div class="val" style="color:var(--green); font-weight:500">Nijedan</div>`
+    : `<div class="val"><div class="comorb-list">${p.comorbs.map(c => `<span class="badge ${c.code==='DEP'||c.code==='ANX'?'red':c.code==='HTA'||c.code==='DLD'||c.code==='OBE'?'amber':'blue'}" title="${c.icd}">${c.desc}</span>`).join("")}</div></div>`;
+
+  document.getElementById("pdMetaGrid").innerHTML = `
+    <div><div class="label">Dob</div><div class="val">${p.age} g.</div></div>
+    <div><div class="label">Spol</div><div class="val">${p.sex}</div></div>
+    <div><div class="label">HbA1c (zadnji)</div><div class="val">${p.hba1c} %</div></div>
+    <div><div class="label">BMI</div><div class="val">${p.bmi}</div></div>
+    <div><div class="label">eGFR</div><div class="val">${p.egfr} ml/min</div></div>
+    <div><div class="label">Polypharmacy</div><div class="val">${p.polypharmacy} lijekova</div></div>
+    <div><div class="label">Drug class (start)</div><div class="val">${p.dc}</div></div>
+    <div><div class="label">Posjeti LOM (180d)</div><div class="val">${p.visits180d}</div></div>
+    <div style="grid-column: 1 / -1"><div class="label">Komorbiditeti</div>${comorbHtml}</div>
+  `;
+
+  // Contact
+  document.getElementById("pdContact").innerHTML = `
+    <div class="row"><span>MBO:</span><b>${maskMBO(p.mbo)}</b></div>
+    <div class="row"><span>OIB:</span><b>${maskOIB(p.oib)}</b></div>
+    <div class="row"><span>Telefon:</span><b>${maskPhone(p.phone)}</b></div>
+    <div class="row"><span>Adresa:</span><b>${p.address}</b></div>
+    <div class="row"><span>Sljedeći termin:</span><b>${p.next}</b></div>
+  `;
+
+  // Tab content (independently of which tab is currently active)
+  renderClinicalSummary(p);
+  renderHipoAlert(p);
+  renderShapLocal();
+  renderCounterfactuals(p);
+  renderInterventionsList(p);
+  renderEvents(p);
+  renderNotes(p);
+
+  // Switch tab to overview
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === "overview"));
+  document.querySelectorAll(".tab-content").forEach(c => c.classList.toggle("active", c.dataset.tab === "overview"));
+
+  // Destroy detail charts so they get rebuilt with this patient's data
+  ["gauge","curPDC","lab","followup","histPDC"].forEach(destroyChart);
+
   setView("patient");
+}
+
+function maskMBO(mbo) { return "****" + mbo.slice(-4); }
+function maskOIB(oib) { return oib.slice(0, 3) + "****" + oib.slice(-2); }
+function maskPhone(p) { return p.replace(/(\+\d{3} \d{2}) (\d{3}) (\d{3})/, "$1 *** $3"); }
+
+function initialsOf(name) {
+  return name.split(" ").map(s => s[0] || "").join("").toUpperCase().slice(0, 2);
+}
+
+function renderRiskAlert(p) {
+  const el = document.getElementById("pdRiskAlert");
+  el.classList.remove("red", "amber", "blue");
+  if (p.bucket === "red") {
+    el.classList.add("red");
+    const drivers = p.shapLocal.filter(s => s.dir === "pos").slice(0, 3).map(s => s.feature.toLowerCase()).join(", ");
+    el.innerHTML = `<strong>Visok rizik neadherencije.</strong> Predviđeni PDC nakon 12 mj.: <b>${p.pdc.toFixed(2)}</b>.
+      Glavni driveri: ${drivers || p.reason}.
+      Preporuka: prioritetna obrada u sljedećih 14 dana.`;
+  } else if (p.bucket === "amber") {
+    el.classList.add("amber");
+    const drivers = p.shapLocal.filter(s => s.dir === "pos").slice(0, 2).map(s => s.feature.toLowerCase()).join(", ");
+    el.innerHTML = `<strong>Granični rizik neadherencije.</strong> Predviđeni PDC nakon 12 mj.: <b>${p.pdc.toFixed(2)}</b>.
+      Glavni driveri: ${drivers || p.reason}.
+      Preporuka: aktivirati preventivnu intervenciju (edukacija + nudge).`;
+  } else {
+    el.classList.add("blue");
+    el.innerHTML = `<strong>Adherentni pacijent.</strong> Predviđeni PDC nakon 12 mj.: <b>${p.pdc.toFixed(2)}</b>.
+      Pacijent je u zelenoj zoni. Standardno praćenje (godišnja kontrola).`;
+  }
+}
+
+function renderClinicalSummary(p) {
+  document.getElementById("pdClinicalSummary").innerHTML = p.clinicalSummary;
+}
+
+function renderHipoAlert(p) {
+  const el = document.getElementById("pdHipoAlert");
+  if (p.hipoAlert) {
+    el.style.display = "";
+    el.textContent = p.hipoAlert;
+  } else {
+    el.style.display = "none";
+  }
+}
+
+function renderCounterfactuals(p) {
+  const tbody = document.getElementById("pdCounterfactualBody");
+  if (!tbody) return;
+  const max = Math.max(...p.counterfactuals.map(c => c.pdc));
+  tbody.innerHTML = p.counterfactuals.map(c => {
+    const cls = c.pdc < 0.6 ? "red" : c.pdc < 0.8 ? "amber" : c.pdc < 0.85 ? "green" : "green";
+    const lbl = c.pdc < 0.6 ? "visok" : c.pdc < 0.8 ? "srednji" : c.pdc < 0.85 ? "nisko" : "vrlo nisko";
+    const isMax = c.pdc === max && c.pdc > p.pdc + 0.05;
+    return `<tr><td>${c.scenario}</td><td><b>${c.pdc.toFixed(2)}</b>${isMax?' <span class="badge green" style="font-size:9px; margin-left:4px">★ NAJBOLJE</span>':''}</td><td><span class="badge ${cls}">${lbl}</span></td></tr>`;
+  }).join("");
+}
+
+const INTERV_SVG = {
+  book: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  msg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  lightning: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  phone: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+  heart: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  pill: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 20.5a7 7 0 0 1-9.9-9.9l9.9-9.9a7 7 0 0 1 9.9 9.9z"/><path d="M5.5 5.5l13 13"/></svg>',
+  check: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+};
+
+function renderInterventionsList(p) {
+  const wrap = document.getElementById("pdIntervList");
+  if (!wrap) return;
+  if (p.recommendedInterventions.length === 0) {
+    wrap.innerHTML = `<div class="alert blue">Za ovog pacijenta nisu potrebne dodatne intervencije izvan standardnog praćenja.</div>`;
+    return;
+  }
+  wrap.innerHTML = p.recommendedInterventions.map(it => {
+    const onclickAttr =
+      it.action === "activate" ? `onclick="activateInterv(this, '${it.name.replace(/'/g, "\\'")}')"`
+      : it.action === "deintensify" ? `onclick="openDeintensifyModal()"`
+      : it.action === "nurse" ? `onclick="openNurseScheduleModal()"`
+      : it.action === "euput" ? `onclick="openEUputModal()"`
+      : it.action === "standard" ? `disabled style="background:var(--green); color:#fff; border-color:var(--green); cursor:default"`
+      : "";
+    const btnCls = it.primary ? "btn primary" : "btn";
+    const cta = it.action === "standard" ? "✓ U toku" : it.cta;
+    return `
+      <div class="interv" data-interv="${it.id}">
+        <div class="ic ${it.icon}">${INTERV_SVG[it.svg] || ""}</div>
+        <div>
+          <div class="name">${it.name}</div>
+          <div class="desc">${it.desc}</div>
+        </div>
+        <button class="${btnCls}" ${onclickAttr}>${cta}</button>
+      </div>`;
+  }).join("");
+}
+
+function renderEvents(p) {
+  const wrap = document.getElementById("pdEvents");
+  if (!wrap) return;
+  wrap.innerHTML = p.events.map(e => `
+    <div class="note"><b>${e.date}</b> — ${e.text} <div class="by">— ${e.by}</div></div>
+  `).join("");
+}
+
+function renderNotes(p) {
+  const wrap = document.getElementById("pdNotesList");
+  const cnt = document.getElementById("pdNotesCount");
+  if (!wrap) return;
+  if (!p.notes || p.notes.length === 0) {
+    cnt.textContent = "— pacijent još nema spremljenih bilježaka";
+    wrap.innerHTML = "";
+    return;
+  }
+  cnt.textContent = `· ${p.notes.length} bilje${p.notes.length===1?'ška':p.notes.length<5?'ške':'žaka'}`;
+  wrap.innerHTML = p.notes.map((n, i) => `
+    <div class="saved-note ${n.dest === 'cezih' ? 'cezih' : ''}">
+      <div class="meta">
+        <span><span class="src">${n.dest === 'cezih' ? 'CEZIH' : 'PRIVREMENO'}</span>${n.when} · dr. M. Horvat</span>
+        <button class="delete" onclick="deleteNote(${i})">Obriši</button>
+      </div>
+      <div>${escapeHtml(n.text)}</div>
+    </div>
+  `).join("");
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+}
+
+function saveNoteLocal() { saveNote("local"); }
+function saveNoteCezih() { saveNote("cezih"); }
+function saveNote(dest) {
+  if (!currentPatient) return;
+  const ta = document.getElementById("pdNoteInput");
+  const text = ta.value.trim();
+  if (!text) {
+    toast("Bilješka je prazna", "Unesite tekst bilješke prije spremanja.", "warn");
+    return;
+  }
+  const now = new Date();
+  const when = now.toLocaleString("hr-HR");
+  currentPatient.notes.unshift({ text, dest, when });
+  saveNotesForPatient(currentPatient, currentPatient.notes);
+  ta.value = "";
+  renderNotes(currentPatient);
+  if (dest === "cezih") {
+    toast("Bilješka spremljena u CEZIH", "Upis je sinkroniziran s elektroničkim kartonom.", "success");
+  } else {
+    toast("Bilješka spremljena", "Bilješka je sačuvana lokalno.", "success");
+  }
+}
+
+function deleteNote(i) {
+  if (!currentPatient) return;
+  if (!confirm("Obrisati ovu bilješku?")) return;
+  currentPatient.notes.splice(i, 1);
+  saveNotesForPatient(currentPatient, currentPatient.notes);
+  renderNotes(currentPatient);
+  toast("Bilješka obrisana", "", "info");
 }
 
 /* Top risk table on dashboard */
@@ -1249,32 +2615,34 @@ function renderTopRisk() {
   if (!tbody) return;
   const top = PATIENTS.slice(0, 5);
   tbody.innerHTML = top.map(p => `
-    <tr><td class="patient-name">${p.name}</td>
+    <tr class="row" data-id="${p.id}" style="cursor:pointer">
+      <td class="patient-name">${p.name}</td>
       <td>${p.dc}</td>
       <td><b>${p.pdc.toFixed(2)}</b></td>
       <td style="font-size:12px; color:var(--muted)">${p.reason}</td>
     </tr>
   `).join("");
+  tbody.querySelectorAll("tr.row").forEach(tr => {
+    tr.addEventListener("click", () => {
+      const id = +tr.dataset.id;
+      openPatient(PATIENTS.find(x => x.id === id));
+    });
+  });
 }
 
 /* =====================================================
-   SHAP local list
+   SHAP local list (per-patient)
    ===================================================== */
-const SHAP_LOCAL = [
-  { feature: "Drug class: sulfonilureja (start)", impact: +0.11, dir: "pos" },
-  { feature: "Polypharmacy ≥ 5 paralelnih lijekova", impact: +0.08, dir: "pos" },
-  { feature: "Depresivna simptomatika (F32)", impact: +0.07, dir: "pos" },
-  { feature: "Propušteno podizanje recepta (90d)", impact: +0.06, dir: "pos" },
-  { feature: "Dob 64 g.", impact: +0.02, dir: "pos" },
-  { feature: "HbA1c 8.4 %", impact: +0.02, dir: "pos" },
-  { feature: "Broj posjeta LOM-u (4 u 6 mj.)", impact: -0.04, dir: "neg" },
-  { feature: "Stalni recepti (chronic Rx)", impact: -0.03, dir: "neg" },
-];
 function renderShapLocal() {
   const wrap = document.getElementById("shapList");
   if (!wrap) return;
-  const max = Math.max(...SHAP_LOCAL.map(s => Math.abs(s.impact)));
-  wrap.innerHTML = SHAP_LOCAL.map(s => {
+  const list = (currentPatient && currentPatient.shapLocal) || PATIENTS[0].shapLocal;
+  if (!list || list.length === 0) {
+    wrap.innerHTML = `<div class="alert blue">Za ovog pacijenta nema značajnih SHAP doprinosa (sve značajke neutralne).</div>`;
+    return;
+  }
+  const max = Math.max(...list.map(s => Math.abs(s.impact)));
+  wrap.innerHTML = list.map(s => {
     const w = (Math.abs(s.impact) / max) * 50;
     const left = s.dir === "neg" ? 50 - w : 50;
     const cls = s.dir === "neg" ? "neg" : "pos";
@@ -1359,11 +2727,23 @@ function initChartsForView() {
 
   // patient detail
   if (document.querySelector("#view-patient.active")) {
+    const p = currentPatient || PATIENTS[0];
+    const gaugeColor = p.bucket === "red" ? "#dc2626" : p.bucket === "amber" ? "#d97706" : "#16a34a";
+    const pdcPct = Math.round(p.pdc * 100);
+
     if (document.getElementById("riskGauge") && !chartRefs.gauge) {
       chartRefs.gauge = new Chart(document.getElementById("riskGauge"), {
         type: "doughnut",
-        data: { labels: ["risk", "rest"], datasets: [{ data: [54, 46], backgroundColor: ["#dc2626","#e2e8f0"], borderWidth: 0 }] },
-        options: { responsive: true, circumference: 180, rotation: 270, cutout: "75%", plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+        data: { labels: ["pdc", "rest"], datasets: [{ data: [pdcPct, 100 - pdcPct], backgroundColor: [gaugeColor, "#e2e8f0"], borderWidth: 0 }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          circumference: 180,
+          rotation: 270,
+          cutout: "72%",
+          layout: { padding: { bottom: 0, top: 6 } },
+          plugins: { legend: { display: false }, tooltip: { enabled: false } }
+        }
       });
     }
     if (document.querySelector(".tab-content[data-tab='overview'].active")) {
@@ -1371,10 +2751,10 @@ function initChartsForView() {
         chartRefs.curPDC = new Chart(document.getElementById("chartCurrentPDC"), {
           type: "line",
           data: {
-            labels: ["S1","S2","S3","S4","S5","S6","S7","S8"],
+            labels: ["T-7","T-6","T-5","T-4","T-3","T-2","T-1","T0"],
             datasets: [
-              { label: "Stvarni PDC", data: [0.85,0.78,0.72,0.65,0.61,0.59,0.56,0.54], borderColor: "#dc2626", backgroundColor: "rgba(220,38,38,.08)", fill: true, tension: .35, borderWidth: 2 },
-              { label: "Cilj (0.80)", data: [0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8], borderColor: "#16a34a", borderDash: [4,4], borderWidth: 1.5, pointRadius: 0 }
+              { label: "Stvarni PDC", data: p.currentPdcWeekly, borderColor: gaugeColor, backgroundColor: gaugeColor + "1A", fill: true, tension: .35, borderWidth: 2 },
+              { label: "Cilj (0.80)", data: Array(8).fill(0.8), borderColor: "#16a34a", borderDash: [4,4], borderWidth: 1.5, pointRadius: 0 }
             ]
           },
           options: { responsive: true, plugins: { legend: { position: "bottom" } }, scales: { y: { min: 0, max: 1 } } }
@@ -1384,13 +2764,13 @@ function initChartsForView() {
         chartRefs.lab = new Chart(document.getElementById("chartLab"), {
           type: "line",
           data: {
-            labels: ["01/25","04/25","07/25","10/25","01/26","04/26"],
+            labels: ["−15 mj.","−12 mj.","−9 mj.","−6 mj.","−3 mj.","sada"],
             datasets: [
-              { label: "HbA1c (%)", yAxisID: "y", data: [7.5,7.6,7.9,8.1,8.2,8.4], borderColor: "#0e6dbf", borderWidth: 2, tension: .35 },
-              { label: "Glukoza natašte (mmol/L)", yAxisID: "y1", data: [7.2,7.5,7.8,8.0,8.3,8.6], borderColor: "#0aa394", borderWidth: 2, tension: .35 },
+              { label: "HbA1c (%)", yAxisID: "y", data: p.hba1cHistory, borderColor: "#0e6dbf", borderWidth: 2, tension: .35 },
+              { label: "Glukoza natašte (mmol/L)", yAxisID: "y1", data: p.glukozaHistory, borderColor: "#0aa394", borderWidth: 2, tension: .35 },
             ]
           },
-          options: { responsive: true, plugins: { legend: { position: "bottom" } }, scales: { y: { position: "left" }, y1: { position: "right", grid: { display: false } } } }
+          options: { responsive: true, plugins: { legend: { position: "bottom" } }, scales: { y: { position: "left", title: { display: true, text: "%" } }, y1: { position: "right", grid: { display: false }, title: { display: true, text: "mmol/L" } } } }
         });
       }
     }
@@ -1413,26 +2793,27 @@ function initChartsForView() {
           data: {
             labels: ["0d","14d","30d","60d","90d"],
             datasets: [
-              { label: "Predviđeni PDC bez intervencije", data: [0.54,0.52,0.50,0.48,0.45], borderColor: "#dc2626", borderDash: [4,4], borderWidth: 2 },
-              { label: "Predviđeni PDC s planom", data: [0.54,0.62,0.71,0.78,0.83], borderColor: "#16a34a", borderWidth: 2.5 },
+              { label: "Predviđeni PDC bez intervencije", data: p.followupNoPlan, borderColor: "#dc2626", borderDash: [4,4], borderWidth: 2 },
+              { label: "Predviđeni PDC s planom", data: p.followupWithPlan, borderColor: "#16a34a", borderWidth: 2.5 },
             ]
           },
-          options: { plugins: { legend: { position: "bottom" } }, scales: { y: { min: 0.3, max: 1 } } }
+          options: { plugins: { legend: { position: "bottom" } }, scales: { y: { min: 0.2, max: 1 } } }
         });
       }
     }
     if (document.querySelector(".tab-content[data-tab='history'].active")) {
       if (!chartRefs.histPDC) {
+        const histLabels = ["−21 mj.","−18 mj.","−15 mj.","−12 mj.","−9 mj.","−6 mj.","−3 mj.","sada"];
         chartRefs.histPDC = new Chart(document.getElementById("chartHistoryPDC"), {
           type: "line",
           data: {
-            labels: ["03/25","05/25","07/25","09/25","11/25","01/26","03/26","04/26"],
+            labels: histLabels,
             datasets: [
-              { label: "PDC", data: [0.92,0.85,0.78,0.72,0.65,0.62,0.58,0.54], borderColor: "#0e6dbf", borderWidth: 2, tension: .35, yAxisID: "y" },
-              { label: "HbA1c", data: [7.0,7.2,7.4,7.6,7.8,8.0,8.2,8.4], borderColor: "#0aa394", borderWidth: 2, tension: .35, yAxisID: "y1" },
+              { label: "PDC", data: p.pdcHistory, borderColor: "#0e6dbf", borderWidth: 2, tension: .35, yAxisID: "y" },
+              { label: "HbA1c", data: [null, null, ...p.hba1cHistory], borderColor: "#0aa394", borderWidth: 2, tension: .35, yAxisID: "y1", spanGaps: true },
             ]
           },
-          options: { plugins: { legend: { position: "bottom" } }, scales: { y: { position: "left", min: 0, max: 1 }, y1: { position: "right", grid: { display: false } } } }
+          options: { plugins: { legend: { position: "bottom" } }, scales: { y: { position: "left", min: 0, max: 1, title: { display: true, text: "PDC" } }, y1: { position: "right", grid: { display: false }, title: { display: true, text: "HbA1c %" } } } }
         });
       }
     }
@@ -1565,14 +2946,1595 @@ function initChartsForView() {
 }
 
 /* =====================================================
+   ▼▼▼  Modal + Toast API + Search + Notifications + ...
+   ===================================================== */
+
+/* ---------- Modal API ---------- */
+function openModal(title, html, footerHtml = "", size = "") {
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalBody").innerHTML = html;
+  document.getElementById("modalFooter").innerHTML = footerHtml ||
+    `<button class="btn" onclick="closeModal()">Zatvori</button>`;
+  const modal = document.getElementById("modal");
+  modal.classList.remove("large", "xlarge");
+  if (size) modal.classList.add(size);
+  document.getElementById("modalOverlay").classList.add("open");
+}
+function closeModal() {
+  document.getElementById("modalOverlay").classList.remove("open");
+}
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModal();
+});
+document.getElementById("modalOverlay").addEventListener("click", e => {
+  if (e.target.id === "modalOverlay") closeModal();
+});
+
+/* ---------- Toast API ---------- */
+function toast(title, msg = "", type = "info") {
+  const wrap = document.getElementById("toasts");
+  const el = document.createElement("div");
+  const icons = {
+    info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+    warn: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+  };
+  el.className = "toast " + type;
+  el.innerHTML = `
+    <div class="icn">${icons[type] || icons.info}</div>
+    <div style="flex:1">
+      <div class="ttl">${title}</div>
+      ${msg ? `<div class="msg">${msg}</div>` : ""}
+    </div>
+    <button class="x">×</button>`;
+  wrap.appendChild(el);
+  el.querySelector(".x").addEventListener("click", () => removeToast(el));
+  setTimeout(() => el.classList.add("show"), 10);
+  setTimeout(() => removeToast(el), 4500);
+}
+function removeToast(el) {
+  el.classList.remove("show");
+  setTimeout(() => el.remove(), 300);
+}
+
+/* =====================================================
+   Search autocomplete
+   ===================================================== */
+function bindSearch() {
+  const input = document.getElementById("searchInput");
+  const dd = document.getElementById("searchDropdown");
+  const list = document.getElementById("searchList");
+
+  function colorOf(b) {
+    return b === "red" ? "#dc2626" : b === "amber" ? "#d97706" : "#16a34a";
+  }
+  function badgeOf(b) {
+    return `<span class="badge ${b}"><span class="dot"></span>${b==='red'?'VISOK':b==='amber'?'GRANIČNO':'OK'}</span>`;
+  }
+  function render(q) {
+    if (!q) { dd.classList.remove("open"); return; }
+    const ql = q.toLowerCase();
+    const matches = PATIENTS.filter(p =>
+      p.name.toLowerCase().includes(ql) ||
+      String(p.id).includes(ql) ||
+      `mbo${(1000+p.id).toString().slice(-4)}`.includes(ql.replace(/\*/g, "")) ||
+      p.dc.toLowerCase().includes(ql) ||
+      p.reason.toLowerCase().includes(ql)
+    ).slice(0, 8);
+    if (matches.length === 0) {
+      list.innerHTML = `<div class="dd-empty">Nema rezultata za "<b>${q}</b>"</div>`;
+    } else {
+      list.innerHTML = matches.map(p => `
+        <div class="dd-item" data-id="${p.id}">
+          <div class="dd-avatar" style="background: linear-gradient(135deg, ${colorOf(p.bucket)}, #0e6dbf)">${p.name.split(" ").map(s=>s[0]).join("").toUpperCase()}</div>
+          <div class="dd-info">
+            <div class="dd-name">${p.name}</div>
+            <div class="dd-sub">MBO ****${(1000+p.id).toString().slice(-4)} · ${p.age} g. · ${p.sex} · ${p.dc}</div>
+          </div>
+          ${badgeOf(p.bucket)}
+        </div>
+      `).join("");
+      list.querySelectorAll(".dd-item").forEach(it => {
+        it.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          const id = +it.dataset.id;
+          const p = PATIENTS.find(x => x.id === id);
+          openPatient(p);
+          dd.classList.remove("open");
+          input.value = "";
+        });
+      });
+    }
+    dd.classList.add("open");
+  }
+
+  input.addEventListener("input", () => render(input.value.trim()));
+  input.addEventListener("focus", () => { if (input.value.trim()) render(input.value.trim()); });
+  input.addEventListener("blur", () => setTimeout(() => dd.classList.remove("open"), 180));
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const first = list.querySelector(".dd-item");
+      if (first) first.dispatchEvent(new MouseEvent("mousedown"));
+    }
+    if (e.key === "Escape") { input.value = ""; dd.classList.remove("open"); input.blur(); }
+  });
+}
+
+/* =====================================================
+   Notifications
+   ===================================================== */
+const NOTIFS = [
+  { id: 1, type: "red",   ttl: "Marija K. — propušten recept", desc: "Sulfonilureja, planirano 18.04. Aktivirana automatska poruka.", time: "prije 35 min", read: false },
+  { id: 2, type: "red",   ttl: "Ivan P. — visoki rizik", desc: "Predviđeni PDC pao na 0.42, prioritet za obradu.", time: "prije 2 h", read: false },
+  { id: 3, type: "amber", ttl: "Petar B. — granični rizik", desc: "Polypharmacy ≥ 5; predloženo pojednostavljenje terapije.", time: "prije 4 h", read: false },
+  { id: 4, type: "amber", ttl: "Lab. rezultati — Ana M.", desc: "HbA1c 8.6 %, povećanje za 0.4 pp.", time: "prije 1 dan", read: false },
+  { id: 5, type: "green", ttl: "Tomislav N. — uspjeh intervencije", desc: "PDC nakon 30d: 0.86 (▲ s 0.62). Nastavlja se praćenje.", time: "prije 1 dan", read: false },
+  { id: 6, type: "info",  ttl: "Sustav AdhereDM — ažuriranje modela", desc: "Novi model v0.9.2 dostupan. MCC 0.541 (▲ 0.012).", time: "prije 2 dana", read: false },
+  { id: 7, type: "info",  ttl: "HZJZ — nove smjernice", desc: "Adherencija u T2DM: pregled 04/2026.", time: "prije 3 dana", read: false },
+];
+
+function renderNotifs() {
+  const list = document.getElementById("notifList");
+  const unread = NOTIFS.filter(n => !n.read).length;
+  document.getElementById("notifBadge").textContent = unread;
+  document.getElementById("notifBadge").style.display = unread === 0 ? "none" : "block";
+  list.innerHTML = NOTIFS.map(n => `
+    <div class="notif-item ${n.type} ${n.read ? "" : "unread"}" data-id="${n.id}">
+      <div class="pin"></div>
+      <div>
+        <div class="ttl">${n.ttl}</div>
+        <div class="desc">${n.desc}</div>
+        <div class="when">${n.time}</div>
+      </div>
+    </div>
+  `).join("");
+  list.querySelectorAll(".notif-item").forEach(it => {
+    it.addEventListener("click", () => {
+      const id = +it.dataset.id;
+      const n = NOTIFS.find(x => x.id === id);
+      n.read = true;
+      renderNotifs();
+      openModal(n.ttl, `
+        <div class="summary-box"><b>Detalji obavijesti</b><br>${n.desc}</div>
+        <p>Vrijeme: ${n.time}</p>
+        <p>Tip: <span class="badge ${n.type==='red'?'red':n.type==='amber'?'amber':n.type==='green'?'green':'blue'}">${n.type.toUpperCase()}</span></p>
+        <p>Klikom na "Otvoriti pacijenta" prikazat će se detaljni karton.</p>
+      `, `
+        <button class="btn" onclick="closeModal()">Zatvori</button>
+        <button class="btn primary" onclick="closeModal(); openFirstRiskPatient()">Otvoriti pacijenta</button>
+      `);
+      document.getElementById("notifDropdown").classList.remove("open");
+    });
+  });
+}
+
+function bindNotifications() {
+  const btn = document.getElementById("notifBtn");
+  const dd = document.getElementById("notifDropdown");
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    closeAllDropdowns(dd);
+    dd.classList.toggle("open");
+  });
+  document.getElementById("notifClear").addEventListener("click", (e) => {
+    e.stopPropagation();
+    NOTIFS.forEach(n => n.read = true);
+    renderNotifs();
+    toast("Sve obavijesti označene kao pročitane", "", "success");
+  });
+  document.getElementById("notifAll").addEventListener("click", () => {
+    dd.classList.remove("open");
+    openModal("Sve obavijesti", `
+      <div class="dd-list" style="max-height:none">
+        ${NOTIFS.map(n => `
+          <div class="notif-item ${n.type}">
+            <div class="pin"></div>
+            <div>
+              <div class="ttl">${n.ttl}</div>
+              <div class="desc">${n.desc}</div>
+              <div class="when">${n.time}</div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `, "", "large");
+  });
+  document.addEventListener("click", () => dd.classList.remove("open"));
+  dd.addEventListener("click", e => e.stopPropagation());
+}
+
+function openFirstRiskPatient() {
+  openPatient(PATIENTS[0]);
+}
+
+/* =====================================================
+   Doctor profile dropdown
+   ===================================================== */
+function bindProfile() {
+  const chip = document.getElementById("docChip");
+  const dd = document.getElementById("profileDropdown");
+  chip.addEventListener("click", (e) => {
+    e.stopPropagation();
+    closeAllDropdowns(dd);
+    dd.classList.toggle("open");
+  });
+  document.addEventListener("click", () => dd.classList.remove("open"));
+  dd.addEventListener("click", e => e.stopPropagation());
+}
+
+function closeAllDropdowns(except = null) {
+  ["notifDropdown", "profileDropdown", "searchDropdown"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el !== except) el.classList.remove("open");
+  });
+}
+
+/* ---------- Profile actions ---------- */
+function openProfileModal() {
+  document.getElementById("profileDropdown").classList.remove("open");
+  const d = CURRENT_DOCTOR || DOCTORS[0];
+  const adherentN = Math.round(d.patients * 0.58);
+  const intervN = d.patients - adherentN;
+  openModal("Moj profil", `
+    <div style="display:flex; gap:18px; align-items:center; margin-bottom:18px">
+      <div style="width:80px; height:80px; border-radius:50%; background: linear-gradient(135deg, var(--primary), var(--teal)); color:#fff; display:grid; place-items:center; font-weight:700; font-size:30px">${d.initials}</div>
+      <div>
+        <h3 style="margin:0">${d.nameFull}</h3>
+        <p style="margin:4px 0 0; color:var(--muted)">${d.spec.split(" · ")[0]}</p>
+        <p style="margin:2px 0 0; color:var(--muted); font-size:12px">${d.team}</p>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Email</label><input type="text" value="${d.email}" /></div>
+      <div class="form-row"><label>Telefon</label><input type="text" value="${d.phone}" /></div>
+      <div class="form-row"><label>Šifra LOM-a</label><input type="text" value="${d.lom}" disabled /></div>
+      <div class="form-row"><label>HKLZ broj</label><input type="text" value="${d.hklz}" disabled /></div>
+    </div>
+    <div class="form-row">
+      <label>Specijalizacije</label>
+      <div style="display:flex; gap:6px; flex-wrap:wrap">
+        <span class="badge blue">Obiteljska medicina</span>
+        <span class="badge green">Dijabetes (NICE certificate)</span>
+        <span class="badge amber">Kardiometabolizam</span>
+        <span class="badge grey">Mentalno zdravlje (PHQ certif.)</span>
+      </div>
+    </div>
+    <div class="summary-box">
+      <b>Statistike ordinacije:</b>
+      ${d.patients} pacijenata · ${adherentN} (58%) adherentni · ${intervN} (42%) na ciljanim intervencijama · CVI ocjena ${d.score}
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Zatvori</button>
+    <button class="btn primary" onclick="toast('Profil', 'Promjene su spremljene.', 'success'); closeModal()">Spremi izmjene</button>
+  `, "large");
+}
+
+function openSettingsModal() {
+  document.getElementById("profileDropdown").classList.remove("open");
+  openModal("Postavke ordinacije", `
+    <div class="form-row">
+      <label>Radno vrijeme</label>
+      <div class="form-grid">
+        <input type="time" value="07:30" />
+        <input type="time" value="14:00" />
+      </div>
+      <div class="help">Pon–pet, smjena 14. ord.</div>
+    </div>
+    <div class="form-row">
+      <label>Kanali obavijesti</label>
+      <div class="checks">
+        <label><input type="checkbox" checked> Push notifikacije za visok rizik</label>
+        <label><input type="checkbox" checked> Email dnevni sažetak (08:00)</label>
+        <label><input type="checkbox"> Tjedni izvještaj na šefa DZ-a</label>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Prag za "visok rizik"</label>
+      <input type="number" value="0.6" step="0.05" min="0" max="1" />
+      <div class="help">Predviđeni PDC ispod ovog praga = visok rizik (default 0.6).</div>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn primary" onclick="toast('Postavke spremljene', '', 'success'); closeModal()">Spremi</button>
+  `);
+}
+
+function openCalendarModal() {
+  document.getElementById("profileDropdown")?.classList.remove("open");
+  const today = new Date();
+  const slots = ["08:00 — Ana M. (kontrola HbA1c)", "08:30 — Slobodno", "09:00 — Marija K. (T2DM razgovor)", "09:30 — Slobodno", "10:00 — Ivan P. (PDC pad)", "10:30 — Slobodno"];
+  openModal("Kalendar — danas " + today.toLocaleDateString("hr-HR"), `
+    <p style="color:var(--muted); font-size:12px">Vaši termini za danas:</p>
+    <ul class="steps-list">
+      ${slots.map(s => `<li>${s}</li>`).join("")}
+    </ul>
+    <div class="form-row" style="margin-top:14px">
+      <label>Zakaži novi termin za odabranog pacijenta</label>
+      <div class="form-grid">
+        <input type="date" value="${today.toISOString().slice(0,10)}" />
+        <input type="time" value="11:00" />
+      </div>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn primary" onclick="toast('Termin zakazan', 'Pacijent je obaviješten SMS-om.', 'success'); closeModal()">Zakaži termin</button>
+  `);
+}
+
+function confirmLogout() {
+  document.getElementById("profileDropdown").classList.remove("open");
+  openModal("Odjava", `
+    <p>Jeste li sigurni da se želite odjaviti iz AdhereDM-a?</p>
+    <p style="color:var(--muted); font-size:12px">Svi nepohranjeni unosi bit će izgubljeni. Sve aktivne intervencije ostaju aktivne.</p>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn" style="background:var(--red); color:#fff; border-color:var(--red)" onclick="closeModal(); doLogout();">Odjavi se</button>
+  `);
+}
+
+/* =====================================================
+   AUTH: doctors, login, logout
+   ===================================================== */
+const DOCTORS = [
+  {
+    id: "mh",
+    initials: "MH",
+    name: "dr. Maja Horvat",
+    nameFull: "dr. Maja Horvat, dr. med.",
+    spec: "Spec. obiteljske medicine · DZ Zagreb-Centar",
+    team: "Ordinacija 14 · Tim: M. Kovač (sestra), F. Babić (admin.)",
+    chipSub: "DZ Zagreb-Centar · Ord. 14",
+    email: "maja.horvat@dzz-centar.hr",
+    phone: "+385 1 23 45 678",
+    lom: "LOM-14-MH",
+    hklz: "ZG-12345",
+    patients: 218, years: 12, score: "98%",
+    cezih: "12345678901",
+    featured: true,
+  },
+  {
+    id: "ip",
+    initials: "IP",
+    name: "dr. Ivana Perić",
+    nameFull: "dr. Ivana Perić, dr. med.",
+    spec: "Spec. obiteljske medicine · DZ Zagreb-Zapad",
+    team: "Ordinacija 7 · Tim: A. Novak (sestra)",
+    chipSub: "DZ Zagreb-Zapad · Ord. 7",
+    email: "ivana.peric@dzz-zapad.hr",
+    phone: "+385 1 33 22 110",
+    lom: "LOM-7-IP",
+    hklz: "ZG-22341",
+    patients: 184, years: 9, score: "96%",
+    cezih: "23456789012",
+    featured: false,
+  },
+  {
+    id: "tn",
+    initials: "TN",
+    name: "dr. Tomislav Novak",
+    nameFull: "dr. Tomislav Novak, dr. med.",
+    spec: "Spec. interne medicine · KBC Sestre milosrdnice",
+    team: "Odjel endokrinologije",
+    chipSub: "KBC Sestre milosrdnice · Endokr.",
+    email: "tomislav.novak@kbcsm.hr",
+    phone: "+385 1 37 87 100",
+    lom: "INT-3-TN",
+    hklz: "ZG-08712",
+    patients: 312, years: 18, score: "97%",
+    cezih: "34567890123",
+    featured: false,
+  },
+];
+
+const AUTH_STORE_KEY = "adheredm.auth.v1";
+let CURRENT_DOCTOR = null;
+
+function getStoredAuth() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    return DOCTORS.find(d => d.id === obj.id) || null;
+  } catch (e) { return null; }
+}
+function setStoredAuth(doc) {
+  if (doc) localStorage.setItem(AUTH_STORE_KEY, JSON.stringify({ id: doc.id, ts: Date.now() }));
+  else localStorage.removeItem(AUTH_STORE_KEY);
+}
+
+function applyDoctorToUI(d) {
+  CURRENT_DOCTOR = d;
+  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  set("docChipAvatar", d.initials);
+  set("docChipName", d.name);
+  set("docChipSub", d.chipSub);
+  set("docDdAvatar", d.initials);
+  set("docDdName", d.nameFull);
+  set("docDdSpec", d.spec);
+  set("docDdTeam", d.team);
+  set("docStatPatients", d.patients);
+  set("docStatYears", d.years);
+  set("docStatScore", d.score);
+}
+
+function renderDemoDoctorList() {
+  const wrap = document.getElementById("demoDoctorsList");
+  if (!wrap) return;
+  wrap.innerHTML = DOCTORS.map(d => `
+    <button type="button" class="demo-doctor ${d.featured ? "featured" : ""}" onclick="loginAsDoctor('${d.id}')">
+      <div class="avatar">${d.initials}</div>
+      <div class="info">
+        <div class="nm">
+          ${d.nameFull}
+          ${d.featured ? `<span class="badge-demo" style="margin-left:6px">DEMO</span>` : ""}
+        </div>
+        <div class="sub">${d.spec}</div>
+      </div>
+      <div class="arrow">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </button>
+  `).join("");
+}
+
+function showLoginScreen() {
+  document.body.classList.add("logged-out");
+  document.getElementById("loginScreen").classList.add("open");
+  ["notifDropdown", "profileDropdown", "searchDropdown"].forEach(id => {
+    document.getElementById(id)?.classList.remove("open");
+  });
+  closeModal();
+  setTimeout(() => {
+    const u = document.getElementById("loginUser");
+    if (u) u.focus();
+  }, 200);
+}
+
+function hideLoginScreen() {
+  document.body.classList.remove("logged-out");
+  document.getElementById("loginScreen").classList.remove("open");
+}
+
+function loginAsDoctor(docId) {
+  const d = DOCTORS.find(x => x.id === docId);
+  if (!d) return;
+  setStoredAuth(d);
+  applyDoctorToUI(d);
+  hideLoginScreen();
+  toast("Prijava uspješna", `Dobrodošli, ${d.name}.`, "success");
+  document.getElementById("loginUser").value = "";
+  document.getElementById("loginPass").value = "";
+}
+
+function doManualLogin() {
+  const userVal = (document.getElementById("loginUser").value || "").trim();
+  const passVal = (document.getElementById("loginPass").value || "").trim();
+  if (!userVal || !passVal) {
+    toast("Podaci nepotpuni", "Unesite korisničko ime i lozinku.", "warn");
+    return;
+  }
+  // Demo: match by CEZIH ID, or fallback to first doctor
+  const d = DOCTORS.find(x => x.cezih === userVal) || DOCTORS[0];
+  loginAsDoctor(d.id);
+}
+
+function doLogout() {
+  setStoredAuth(null);
+  // Reset app state
+  currentPatient = null;
+  // Switch back to dashboard so next login starts clean
+  try { setView("dashboard", "Pregled ordinacije"); } catch (e) {}
+  showLoginScreen();
+  toast("Odjavljeni ste", "Vidimo se ponovno!", "info");
+}
+
+function initAuth() {
+  renderDemoDoctorList();
+  const stored = getStoredAuth();
+  if (stored) {
+    applyDoctorToUI(stored);
+    hideLoginScreen();
+  } else {
+    applyDoctorToUI(DOCTORS[0]);
+    showLoginScreen();
+  }
+}
+
+/* =====================================================
+   Dashboard buttons: Izvoz izvještaja + Nova intervencija
+   ===================================================== */
+function openExportReportModal() {
+  openModal("Izvoz izvještaja ordinacije", `
+    <p style="color:var(--muted); font-size:13px">Generiraj izvještaj o stanju adherencije s odabranim sadržajem.</p>
+    <div class="form-row">
+      <label>Razdoblje</label>
+      <select id="repPeriod">
+        <option value="30d">Posljednjih 30 dana</option>
+        <option value="90d">Posljednjih 90 dana</option>
+        <option value="12m" selected>Posljednjih 12 mjeseci</option>
+        <option value="ytd">Od početka godine</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Sekcije izvještaja</label>
+      <div class="checks">
+        <label><input type="checkbox" id="repKpi" checked> KPI sažetak (broj pacijenata, distribucija PDC-a)</label>
+        <label><input type="checkbox" id="repTrend" checked> Trend adherencije kroz vrijeme</label>
+        <label><input type="checkbox" id="repTop" checked> Top 10 prioritetnih pacijenata</label>
+        <label><input type="checkbox" id="repInterv" checked> Pregled aktivnih intervencija</label>
+        <label><input type="checkbox" id="repCohort"> Kohortna analitika (po dobi/spolu/drug class)</label>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Format</label>
+      <div class="checks" style="flex-direction:row; gap:10px">
+        <label style="flex:1"><input type="radio" name="repFmt" value="pdf" checked> PDF (preporučeno)</label>
+        <label style="flex:1"><input type="radio" name="repFmt" value="csv"> CSV (sirovi podaci)</label>
+      </div>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn primary" onclick="generateReport()">Generiraj izvještaj</button>
+  `);
+}
+
+function generateReport() {
+  const fmt = document.querySelector("input[name=repFmt]:checked").value;
+  const period = document.getElementById("repPeriod").value;
+  const sections = {
+    kpi: document.getElementById("repKpi").checked,
+    trend: document.getElementById("repTrend").checked,
+    top: document.getElementById("repTop").checked,
+    interv: document.getElementById("repInterv").checked,
+    cohort: document.getElementById("repCohort").checked,
+  };
+  closeModal();
+  if (fmt === "csv") {
+    exportPatientsCSV();
+    return;
+  }
+  generateReportPDF(period, sections);
+}
+
+function generateReportPDF(period, sections) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const W = doc.internal.pageSize.getWidth();
+  const margin = 50;
+
+  // --- header ---
+  doc.setFillColor(10, 79, 140);
+  doc.rect(0, 0, W, 80, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(20);
+  doc.text("AdhereDM", margin, 35);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  doc.text("Sustav podrške adherenciji T2DM · izvještaj ordinacije", margin, 55);
+  doc.setFontSize(9);
+  doc.text("Datum: " + new Date().toLocaleString("hr-HR"), W - margin, 35, { align: "right" });
+  doc.text("Liječnik: dr. Maja Horvat · DZ Zagreb-Centar · Ord. 14", W - margin, 55, { align: "right" });
+
+  let y = 110;
+  doc.setTextColor(15, 23, 42);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(16);
+  doc.text("Izvještaj o adherenciji pacijenata s T2DM", margin, y);
+  y += 22;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  doc.setTextColor(100, 116, 139);
+  const periodLabel = { "30d": "30 dana", "90d": "90 dana", "12m": "12 mjeseci", "ytd": "od početka godine" }[period];
+  doc.text(`Razdoblje: ${periodLabel}`, margin, y);
+  y += 25;
+
+  if (sections.kpi) {
+    doc.setTextColor(15, 23, 42);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(13);
+    doc.text("1. Sažetak (KPI)", margin, y); y += 16;
+    doc.autoTable({
+      startY: y,
+      head: [["Pokazatelj", "Vrijednost", "Trend"]],
+      body: [
+        ["Ukupno pacijenata s T2DM", "218", "▲ +6 novih u 30 dana"],
+        ["Adherentni (PDC ≥ 0.8)", "126 (57.8 %)", "▲ +4.1 pp"],
+        ["Granični rizik (PDC 0.6–0.8)", "47 (21.6 %)", "▼ -1.2 pp"],
+        ["Visok rizik (PDC < 0.6)", "45 (20.6 %)", "▼ -2.9 pp"],
+        ["Prosječan PDC ordinacije", "0.74", "▲ +0.03"],
+      ],
+      theme: "striped",
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [10, 79, 140], textColor: 255 },
+      margin: { left: margin, right: margin },
+    });
+    y = doc.lastAutoTable.finalY + 20;
+  }
+
+  if (sections.top) {
+    if (y > 700) { doc.addPage(); y = 60; }
+    doc.setFont("helvetica", "bold"); doc.setFontSize(13);
+    doc.text("2. Top 10 prioritetnih pacijenata", margin, y); y += 16;
+    doc.autoTable({
+      startY: y,
+      head: [["Šifra", "Spol/Dob", "Drug class", "Pred. PDC", "Razlog"]],
+      body: PATIENTS.slice(0, 10).map(p => [
+        `MBO ****${(1000+p.id).toString().slice(-4)}`,
+        `${p.sex} / ${p.age}`,
+        p.dc,
+        p.pdc.toFixed(2),
+        p.reason,
+      ]),
+      theme: "striped",
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [10, 79, 140], textColor: 255 },
+      margin: { left: margin, right: margin },
+    });
+    y = doc.lastAutoTable.finalY + 20;
+  }
+
+  if (sections.interv) {
+    if (y > 680) { doc.addPage(); y = 60; }
+    doc.setFont("helvetica", "bold"); doc.setFontSize(13);
+    doc.text("3. Aktivne intervencije", margin, y); y += 16;
+    doc.autoTable({
+      startY: y,
+      head: [["Komponenta", "Aktivni pacijenti", "Prosj. PDC prije", "Prosj. PDC nakon 90d"]],
+      body: [
+        ["Edukacija o T2DM", "32", "0.55", "0.71"],
+        ["Pojednostavljenje terapije", "18", "0.58", "0.78"],
+        ["SMS / digital nudge", "47", "0.62", "0.71"],
+        ["Sestrinski follow-up", "21", "0.59", "0.74"],
+        ["Ljekarnička podrška", "9", "0.61", "0.72"],
+        ["Psihološka podrška", "6", "0.56", "0.66"],
+      ],
+      theme: "striped",
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [10, 163, 148], textColor: 255 },
+      margin: { left: margin, right: margin },
+    });
+    y = doc.lastAutoTable.finalY + 20;
+  }
+
+  if (sections.cohort) {
+    if (y > 680) { doc.addPage(); y = 60; }
+    doc.setFont("helvetica", "bold"); doc.setFontSize(13);
+    doc.text("4. Kohortna analitika", margin, y); y += 16;
+    doc.autoTable({
+      startY: y,
+      head: [["Dimenzija", "Skupina", "Adherentni (%)", "Neadherentni (%)"]],
+      body: [
+        ["Dob", "35-44", "70", "30"],
+        ["Dob", "45-54", "68", "32"],
+        ["Dob", "55-64", "64", "36"],
+        ["Dob", "65-74", "60", "40"],
+        ["Dob", "75+", "53", "47"],
+        ["Drug class", "Metformin", "78", "22"],
+        ["Drug class", "Sulfonilureja", "52", "48"],
+        ["Drug class", "SGLT2", "71", "29"],
+        ["Drug class", "GLP-1", "68", "32"],
+        ["Drug class", "DPP-4", "73", "27"],
+      ],
+      theme: "striped",
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [10, 79, 140], textColor: 255 },
+      margin: { left: margin, right: margin },
+    });
+  }
+
+  // Footer on all pages
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text("AdhereDM · AI4Health.Cro 2026 · Pseudonimizirani podaci · Dokument nije za eksternu distribuciju", margin, 820);
+    doc.text(`Str. ${i} / ${pageCount}`, W - margin, 820, { align: "right" });
+  }
+
+  doc.save(`AdhereDM_izvjestaj_${new Date().toISOString().slice(0,10)}.pdf`);
+  toast("Izvještaj generiran", "PDF preuzet u Downloads.", "success");
+}
+
+function exportPatientsCSV() {
+  const filterPill = document.querySelector(".pill.active[data-risk]");
+  const drugFilter = document.getElementById("drugClassFilter");
+  const list = filteredPatients(filterPill ? filterPill.dataset.risk : "all", drugFilter ? drugFilter.value : "all");
+  let csv = "row_id,name,sex,age,drug_class,predicted_pdc,risk_bucket,reason,intervention_status,hba1c,bmi\n";
+  list.forEach(p => {
+    csv += `${p.id},"${p.name}",${p.sex},${p.age},"${p.dc}",${p.pdc.toFixed(3)},${p.bucket},"${p.reason}","${p.interv}",${p.hba1c},${p.bmi}\n`;
+  });
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `AdhereDM_pacijenti_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  toast("CSV preuzet", `${list.length} pacijenata izvezeno.`, "success");
+}
+
+function openNewInterventionModal() {
+  openModal("Nova intervencija", `
+    <p style="color:var(--muted); font-size:13px">Pokrenite intervenciju za jednog pacijenta ili masivno za podgrupu.</p>
+    <div class="form-row">
+      <label>Tip intervencije</label>
+      <div class="checks">
+        <label><input type="radio" name="newIntScope" value="single" checked> Pojedinačna (odabrani pacijent)</label>
+        <label><input type="radio" name="newIntScope" value="cohort"> Masovna (kohorta)</label>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Pacijent / kohorta</label>
+      <select id="newIntTarget">
+        <option>Marija K. (visok rizik, PDC 0.54)</option>
+        <option>Ivan P. (visok rizik, PDC 0.42)</option>
+        <option>Petar B. (granično, PDC 0.71)</option>
+        <option>Svi visoko-rizični (45 pacijenata)</option>
+        <option>Svi granični (47 pacijenata)</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Komponente intervencije</label>
+      <div class="checks">
+        <label><input type="checkbox" checked> Strukturirana edukacija o T2DM</label>
+        <label><input type="checkbox" checked> SMS podsjetnik 3 dana prije isteka</label>
+        <label><input type="checkbox"> Pojednostavljenje terapije (deintensifikacija)</label>
+        <label><input type="checkbox" checked> Sestrinski follow-up za 7 dana</label>
+        <label><input type="checkbox"> Ljekarnička podrška (MTM)</label>
+        <label><input type="checkbox"> Psihološka podrška (PHQ-2)</label>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Datum početka</label>
+      <input type="date" value="${new Date().toISOString().slice(0,10)}" />
+    </div>
+    <div class="form-row">
+      <label>Bilješka liječnika</label>
+      <textarea placeholder="Razlog za odabranu kombinaciju, planirani ishod, kontrolne točke..."></textarea>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn primary" onclick="confirmNewIntervention()">Pokreni intervenciju</button>
+  `, "large");
+}
+
+function confirmNewIntervention() {
+  closeModal();
+  toast("Intervencija pokrenuta", "Sestra i ljekarnik su obaviješteni. SMS podsjetnik aktivan.", "success");
+}
+
+/* =====================================================
+   Patient detail modals (svi gumbi)
+   ===================================================== */
+function openSmsModal() {
+  openModal("Pošalji SMS podsjetnik", `
+    <div class="form-row">
+      <label>Primatelj</label>
+      <input type="text" value="Marija K. — +385 91 *** **34" disabled />
+    </div>
+    <div class="form-row">
+      <label>Tip podsjetnika</label>
+      <select id="smsType" onchange="updateSmsTemplate(this.value)">
+        <option value="recipe">Podizanje recepta (3 dana prije isteka)</option>
+        <option value="control">Kontrola HbA1c (15 dana unaprijed)</option>
+        <option value="termin">Podsjetnik na termin</option>
+        <option value="custom">Vlastita poruka</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Tekst poruke (max 160 znakova)</label>
+      <textarea id="smsBody" maxlength="160">Poštovana Marija, Vaš recept za sulfonilureju ističe za 3 dana. Molimo svratite u ljekarnu. Hvala. — Ord. 14, dr. Horvat</textarea>
+      <div class="help">SMS će biti poslan u sljedećih 5 min. Pacijentica može opt-out odgovorom STOP.</div>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn primary" onclick="closeModal(); toast('SMS poslan','Podsjetnik isporučen na +385 91 *** **34','success')">Pošalji SMS</button>
+  `);
+}
+function updateSmsTemplate(type) {
+  const t = {
+    recipe: "Poštovana Marija, Vaš recept za sulfonilureju ističe za 3 dana. Molimo svratite u ljekarnu. Hvala. — Ord. 14, dr. Horvat",
+    control: "Poštovana Marija, podsjećamo Vas na kontrolu HbA1c-a 03.05.2026. u Lab. ZZJZ. — Ord. 14, dr. Horvat",
+    termin: "Poštovana Marija, podsjećamo Vas na termin 02.05.2026. u 09:00. — Ord. 14, dr. Horvat",
+    custom: "",
+  };
+  const el = document.getElementById("smsBody");
+  if (el) el.value = t[type] || "";
+}
+
+function openTelConsultModal() {
+  openModal("Telefonska konzultacija", `
+    <div class="form-row">
+      <label>Pacijent</label>
+      <input type="text" value="Marija K. — +385 91 *** **34" disabled />
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Datum</label><input type="date" value="${new Date().toISOString().slice(0,10)}" /></div>
+      <div class="form-row"><label>Vrijeme</label><input type="time" value="11:30" /></div>
+    </div>
+    <div class="form-row">
+      <label>Trajanje (min)</label>
+      <input type="number" value="15" min="5" max="60" step="5" />
+    </div>
+    <div class="form-row">
+      <label>Cilj razgovora</label>
+      <div class="checks">
+        <label><input type="checkbox" checked> Provjera razumijevanja terapije</label>
+        <label><input type="checkbox" checked> Razgovor o nuspojavama (mučnina)</label>
+        <label><input type="checkbox" checked> Skrining depresivnih simptoma (PHQ-2)</label>
+        <label><input type="checkbox"> Motivacijski intervju</label>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Bilješka prije razgovora</label>
+      <textarea placeholder="Što želite saznati ili objasniti..."></textarea>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn primary" onclick="closeModal(); toast('Konzultacija zakazana','Pacijentica je obaviještena SMS-om.','success')">Zakaži konzultaciju</button>
+  `);
+}
+
+function openInterventionPlanModal() {
+  openModal("Plan intervencije za Mariju K.", `
+    <div class="alert blue">
+      <div><b>Preporuka modela:</b> kombinacija edukacije + SMS-a + sestrinskog follow-upa daje predviđen PDC nakon 90 dana <b>0.83</b> (s 0.54 trenutno).</div>
+    </div>
+    <div class="form-row">
+      <label>Komponente plana</label>
+      <div class="checks">
+        <label><input type="checkbox" checked> Strukturirana edukacija o T2DM (15 min, prvi posjet)</label>
+        <label><input type="checkbox" checked> SMS podsjetnik 3 dana prije isteka recepta</label>
+        <label><input type="checkbox"> Pojednostavljenje terapije (zamjena → SGLT2)</label>
+        <label><input type="checkbox" checked> Sestrinski follow-up za 7 dana</label>
+        <label><input type="checkbox"> Ljekarnička podrška (MTM)</label>
+        <label><input type="checkbox"> Psihološka podrška (PHQ-2 +)</label>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Trajanje plana</label>
+      <select>
+        <option>30 dana</option>
+        <option selected>90 dana</option>
+        <option>180 dana</option>
+        <option>365 dana</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Bilješka u kartonu</label>
+      <textarea>Pacijentica s tihom progresijom T2DM (HbA1c 8.4 %), uvedena sulfonilureja, propušteno podizanje recepta. Primjenjujem multimodalnu intervenciju s ciljem PDC > 0.8 nakon 90 dana.</textarea>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn primary" onclick="closeModal(); toast('Plan aktiviran','Sestra i SMS sustav obaviješteni. Praćenje 7d, 30d, 90d.','success')">Aktivirati plan</button>
+  `, "large");
+}
+
+function openCezihModal() {
+  openModal("CEZIH karton — Marija K.", `
+    <div class="cezih-frame">
+      <div class="cezih-head">CEZIH · KARTON · MBO ****1234 · Pristup: 26.04.2026 11:12</div>
+      <div><b>Identifikacija:</b> Marija K., Ž, 03.06.1961.</div>
+      <div><b>OIB:</b> 12345678901</div>
+      <div><b>Adresa:</b> Ilica **, 10000 Zagreb</div>
+      <div><b>Osigurana:</b> HZZO obvezno + dopunsko</div>
+      <hr style="border:0; border-top:1px solid #cbd5e1; margin:8px 0">
+      <div><b>Aktivne dijagnoze:</b></div>
+      <div>· E11.9 — Šećerna bolest tipa 2 bez komplikacija</div>
+      <div>· I10 — Esencijalna hipertenzija</div>
+      <div>· F32.1 — Depresivna epizoda, umjerena</div>
+      <div>· E78.5 — Hiperlipidemija</div>
+      <hr style="border:0; border-top:1px solid #cbd5e1; margin:8px 0">
+      <div><b>Aktivna terapija:</b></div>
+      <div>· Glimepirid 2 mg, 1× dnevno</div>
+      <div>· Metformin 1000 mg, 2× dnevno</div>
+      <div>· Ramipril 5 mg, 1× dnevno</div>
+      <div>· Atorvastatin 20 mg, navečer</div>
+      <div>· Sertralin 50 mg, jutarnje</div>
+      <div>· Acidum acetylsalicylicum 100 mg, 1× dnevno</div>
+      <hr style="border:0; border-top:1px solid #cbd5e1; margin:8px 0">
+      <div><b>Posljednji laboratorijski nalaz (15.01.2026):</b></div>
+      <div>· HbA1c: 8.4 % (cilj &lt; 7 %)</div>
+      <div>· Glukoza natašte: 8.6 mmol/L</div>
+      <div>· eGFR: 62 ml/min/1.73 m²</div>
+      <div>· LDL: 2.8 mmol/L</div>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Zatvori</button>
+    <button class="btn primary" onclick="closeModal(); toast('Karton sinkroniziran','Najnoviji podaci povučeni iz CEZIH-a.','success')">Sinkroniziraj s CEZIH</button>
+  `, "large");
+}
+
+/* SHAP-tab interventions detail modals */
+function activateInterv(btn, name) {
+  btn.disabled = true;
+  btn.textContent = "✓ Aktivirana";
+  btn.classList.remove("primary");
+  btn.style.background = "var(--green)";
+  btn.style.color = "#fff";
+  btn.style.borderColor = "var(--green)";
+  toast(`${name} aktivirana`, "Komponenta dodana u plan intervencije za Mariju K.", "success");
+}
+function openDeintensifyModal() {
+  openModal("Pojednostavljenje terapije — pregled opcija", `
+    <p style="color:var(--muted); font-size:13px">Predviđanja modela za 4 kliničke opcije, uz osnovne smjernice ADA/EASD 2024.</p>
+    <table class="patients">
+      <thead><tr><th>Opcija</th><th>Doza/dan</th><th>Pred. PDC</th><th>Hipo rizik</th></tr></thead>
+      <tbody>
+        <tr><td>Trenutna (sulfonilureja + metformin)</td><td>3</td><td>0.54</td><td><span class="badge red">visok</span></td></tr>
+        <tr><td>SGLT2 (empagliflozin) + metformin</td><td>2</td><td><b>0.79</b></td><td><span class="badge green">nizak</span></td></tr>
+        <tr><td>DPP-4 (linagliptin) + metformin</td><td>2</td><td>0.71</td><td><span class="badge green">nizak</span></td></tr>
+        <tr><td>Fiksna kombinacija SGLT2+metformin</td><td><b>1</b></td><td><b>0.84</b></td><td><span class="badge green">nizak</span></td></tr>
+      </tbody>
+    </table>
+    <div class="alert amber" style="margin-top:14px">
+      <div><b>Klinički naglasak:</b> sulfonilureja u dobi &gt; 60 god. nosi povišen rizik hipoglikemije. SGLT2 ima dodatnu KV korist (EMPA-REG OUTCOME).</div>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn primary" onclick="closeModal(); toast('Preporuka spremljena u karton','Razmotrit ćete SGLT2 na sljedećem posjetu.','success')">Spremi preporuku</button>
+  `, "large");
+}
+function openNurseScheduleModal() {
+  openModal("Zakaži tel. sestrinski follow-up", `
+    <div class="form-row"><label>Sestra</label><select><option>M. Kovač (ord. 14)</option><option>I. Petrović (ord. 12)</option></select></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Datum</label><input type="date" value="${new Date(Date.now()+7*864e5).toISOString().slice(0,10)}" /></div>
+      <div class="form-row"><label>Vrijeme</label><input type="time" value="10:00" /></div>
+    </div>
+    <div class="form-row">
+      <label>Sadržaj poziva</label>
+      <div class="checks">
+        <label><input type="checkbox" checked> Provjera razumijevanja terapije</label>
+        <label><input type="checkbox" checked> PHQ-2 skrining</label>
+        <label><input type="checkbox" checked> Motivacijski intervju (kratki MI)</label>
+        <label><input type="checkbox"> MMAS-8 upitnik</label>
+      </div>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn primary" onclick="closeModal(); toast('Sestrinski follow-up zakazan','M. Kovač će obaviti razgovor.','success')">Zakaži</button>
+  `);
+}
+function openEUputModal() {
+  openModal("Pripremi e-uput — psiholog", `
+    <div class="cezih-frame">
+      <div class="cezih-head">CEZIH · E-UPUTNICA · GENERIRANO 26.04.2026</div>
+      <div><b>Pacijent:</b> Marija K., MBO ****1234</div>
+      <div><b>Uputnik:</b> dr. Maja Horvat (LOM-14-MH)</div>
+      <div><b>Specijalist:</b> klinički psiholog (D-PSI)</div>
+      <div><b>Razlog upućivanja:</b> depresivni simptomi umjerene težine (F32.1) u kontekstu T2DM, PHQ-9 = 11. Adherencija na terapiju oslabljena.</div>
+      <div><b>Predložena dijagnostika:</b> klinički intervju, MINI 7.0, BDI-II.</div>
+      <div><b>Hitnost:</b> redovna (do 30 dana)</div>
+    </div>
+    <div class="form-row" style="margin-top:14px">
+      <label>Dodatne napomene za psihologa</label>
+      <textarea>Pacijentica suočena s "tihom" progresijom T2DM, percepcija "kazne" i bezizlaznosti. Razmotriti CBT-D pristup.</textarea>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn primary" onclick="closeModal(); toast('E-uput poslan','Pacijentica i psiholog obaviješteni.','success')">Pošalji e-uput</button>
+  `, "large");
+}
+
+/* =====================================================
+   Patients page extra: drug class filter + mass message
+   ===================================================== */
+function filteredPatients(risk, drugClass) {
+  return PATIENTS.filter(p =>
+    (risk === "all" || p.bucket === risk) &&
+    (drugClass === "all" || p.dc === drugClass)
+  );
+}
+function applyPatientsFilters() {
+  const riskBtn = document.querySelector(".pill.active[data-risk]");
+  const risk = riskBtn ? riskBtn.dataset.risk : "all";
+  const drug = document.getElementById("drugClassFilter").value;
+  const list = filteredPatients(risk, drug);
+  const tbody = document.getElementById("patientsTableBody");
+  tbody.innerHTML = list.slice(0, 80).map(p => `
+    <tr class="row" data-id="${p.id}">
+      <td class="patient-name">${p.name} <small>MBO ****${(1000 + p.id).toString().slice(-4)}</small></td>
+      <td>${p.age} / ${p.sex}</td>
+      <td>${p.dc}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="progress" title="${(p.pdc*100).toFixed(0)}%"><i style="width:${(p.pdc*100).toFixed(0)}%; background:${p.bucket==='red'?'#dc2626':p.bucket==='amber'?'#d97706':'#16a34a'}"></i></div>
+          <span style="font-variant-numeric:tabular-nums; font-weight:600">${p.pdc.toFixed(2)}</span>
+        </div>
+      </td>
+      <td>${bucketBadge(p.bucket)}</td>
+      <td style="font-size:12px; color:var(--muted)">${p.reason}</td>
+      <td><span class="badge ${p.interv==='Aktivna'?'blue':p.interv==='Završena'?'green':p.interv==='Bez intervencije'?'grey':'amber'}">${p.interv}</span></td>
+      <td>${p.next}</td>
+    </tr>
+  `).join("");
+  tbody.querySelectorAll("tr.row").forEach(tr => {
+    tr.addEventListener("click", () => {
+      const id = +tr.dataset.id;
+      const p = PATIENTS.find(x => x.id === id);
+      openPatient(p);
+    });
+  });
+  const info = document.getElementById("patientCountInfo");
+  if (info) info.textContent = `Prikazano ${Math.min(list.length, 80)} / ${list.length}.${list.length > 80 ? " (Prikaz ograničen na 80 najrizičnijih.)" : ""}`;
+}
+
+function openMassMessageModal() {
+  openModal("Masivna poruka pacijentima", `
+    <p style="color:var(--muted); font-size:13px">Šaljete poruku grupi pacijenata koji odgovaraju trenutnim filtrima.</p>
+    <div class="summary-box">
+      Trenutno odabrano: <b id="massCount">${filteredPatients(
+        (document.querySelector(".pill.active[data-risk]")||{}).dataset?.risk || "all",
+        document.getElementById("drugClassFilter").value
+      ).length} pacijenata</b>
+    </div>
+    <div class="form-row">
+      <label>Predložak poruke</label>
+      <select onchange="document.getElementById('massBody').value=this.value">
+        <option value="Poštovani, podsjećamo Vas na važnost redovnog uzimanja terapije za dijabetes. Za sva pitanja javite se ord. 14. Hvala. — dr. Horvat" selected>Općeniti podsjetnik</option>
+        <option value="Poštovani, prema našoj evidenciji možda Vam je vrijeme za novu kontrolu HbA1c-a. Javite se ord. 14 za termin. — dr. Horvat">Poziv na kontrolu</option>
+        <option value="Poštovani, organiziramo grupni razgovor o životu s dijabetesom 15.05.2026. u 17h. Pridružite nam se. — dr. Horvat">Edukativni event</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Tekst poruke</label>
+      <textarea id="massBody" maxlength="160">Poštovani, podsjećamo Vas na važnost redovnog uzimanja terapije za dijabetes. Za sva pitanja javite se ord. 14. Hvala. — dr. Horvat</textarea>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn primary" onclick="closeModal(); toast('Masivna poruka poslana','Poruka u redu za isporuku.','success')">Pošalji svima</button>
+  `);
+}
+
+/* =====================================================
+   Interventions page modals
+   ===================================================== */
+function openCustomInterventionModal() {
+  openModal("Vlastita intervencija", `
+    <p style="color:var(--muted); font-size:13px">Definirajte komponentu koju će tim ordinacije moći koristiti.</p>
+    <div class="form-row"><label>Naziv</label><input type="text" placeholder="npr. Grupna edukacija o ishrani" /></div>
+    <div class="form-row"><label>Opis</label><textarea placeholder="Tko provodi, kome je namijenjeno, što sadrži..."></textarea></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Očekivani efekt na PDC</label><input type="number" value="10" min="0" max="50" />%</div>
+      <div class="form-row"><label>Trošak</label><select><option>Nizak</option><option>Srednji</option><option>Visok</option></select></div>
+    </div>
+    <div class="form-row">
+      <label>Indikacijski profil (kome se preporučuje)</label>
+      <div class="checks">
+        <label><input type="checkbox"> Visok rizik (PDC < 0.6)</label>
+        <label><input type="checkbox"> Granični rizik (PDC 0.6-0.8)</label>
+        <label><input type="checkbox"> Polypharmacy ≥ 5</label>
+        <label><input type="checkbox"> Depresija/anksioznost</label>
+      </div>
+    </div>
+  `, `
+    <button class="btn" onclick="closeModal()">Otkaži</button>
+    <button class="btn primary" onclick="closeModal(); toast('Intervencija dodana u katalog','Vidljiva timu ordinacije.','success')">Spremi intervenciju</button>
+  `, "large");
+}
+
+/* =====================================================
+   PDF generators: Tehnička dok. + Klinički protokol
+   ===================================================== */
+function downloadTechnicalDocPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const W = doc.internal.pageSize.getWidth();
+  const margin = 50;
+
+  // ==== COVER PAGE ====
+  doc.setFillColor(7, 56, 104); doc.rect(0, 0, W, 842, "F");
+  doc.setFillColor(10, 163, 148); doc.rect(0, 700, W, 30, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(38);
+  doc.text("AdhereDM", margin, 220);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(16);
+  doc.text("Tehnička dokumentacija prediktivnog modela", margin, 252);
+  doc.setFontSize(12);
+  doc.text("Adherencija pacijenata s dijabetesom tipa 2 (T2DM)", margin, 275);
+  doc.setFontSize(11); doc.setTextColor(180, 220, 255);
+  doc.text("AI4Health.Cro Inovacijski izazov 2026 — Zadatak 1", margin, 305);
+  doc.text("U partnerstvu s AstraZeneca i Novo Nordisk Hrvatska", margin, 322);
+
+  doc.setDrawColor(255, 255, 255); doc.setLineWidth(0.5);
+  doc.line(margin, 370, W - margin, 370);
+  doc.setTextColor(255, 255, 255); doc.setFontSize(10);
+  doc.text("Verzija dokumenta: 0.9.2", margin, 395);
+  doc.text("Datum: " + new Date().toLocaleDateString("hr-HR"), margin, 412);
+  doc.text("Status: validiran na hold-out skupu", margin, 429);
+
+  // ==== Page 2: Sažetak ====
+  doc.addPage();
+  let y = drawHeader(doc, "1. Izvršni sažetak");
+  y = writeParagraph(doc, "AdhereDM je prediktivni klasifikacijski model koji u trenutku početka nove terapije neinzulinskim antidijabeticima predviđa hoće li pacijent unutar 12 mjeseci ostvariti adekvatnu razinu adherencije, mjerenu PDC ≥ 0.8. Cilj modela je rana identifikacija pacijenata visokog rizika neadherencije kako bi se omogućila pravovremena intervencija od strane liječnika obiteljske medicine.", y);
+  y = writeParagraph(doc, "Model je razvijen na anonimiziranim podacima primarne zdravstvene zaštite (RH), harmoniziranim na OMOP CDM standard. Ključne karakteristike modela:", y);
+
+  doc.autoTable({
+    startY: y,
+    head: [["Karakteristika", "Vrijednost"]],
+    body: [
+      ["Algoritam", "XGBoost (gradient boosting) s isotonic kalibracijom"],
+      ["Ulazne značajke", "68 značajki iz 7 OMOP CDM tablica"],
+      ["Vremenski okvir", "Lookback 180 dana, predikcija 365 dana naprijed"],
+      ["Validacija", "5-fold stratificirani CV po subject_id + hold-out test"],
+      ["Hiperparametri", "Optuna 200 trijala (TPE sampler)"],
+      ["Eksplanabilnost", "TreeSHAP (globalno + lokalno + counterfactuals)"],
+      ["MCC (validacija)", "0.541 (95% CI: 0.512 – 0.569)"],
+      ["ROC AUC", "0.84"],
+      ["PR AUC", "0.78"],
+      ["Brier score", "0.13 (dobra kalibracija)"],
+    ],
+    theme: "grid",
+    styles: { fontSize: 9, cellPadding: 4 },
+    headStyles: { fillColor: [10, 79, 140], textColor: 255 },
+    columnStyles: { 0: { fontStyle: "bold", cellWidth: 180 } },
+    margin: { left: margin, right: margin },
+  });
+  y = doc.lastAutoTable.finalY + 14;
+
+  y = writeSubheader(doc, "1.1. Predaja rješenja", y);
+  y = writeParagraph(doc, "Format: CSV (zarez kao delimiter), kolone: row_id, label, score. Vrijednost label = 1 označava predviđenu neadherenciju (PDC < 0.8), score je kontinuirana vjerojatnost neadherencije. Datoteka se predaje na share putanju \\\\fs-spe\\homes$\\username_tima\\.", y);
+
+  // ==== Page 3: Podaci ====
+  doc.addPage();
+  y = drawHeader(doc, "2. Podaci i priprema");
+  y = writeSubheader(doc, "2.1. Izvor podataka", y);
+  y = writeParagraph(doc, "Anonimizirani podaci primarne zdravstvene zaštite, ekstrahirani iz baze prema kriterijima kohorte osoba s mogućim T2DM i fenotipiziranim pomoću algoritama s povišenim PPV-om za T2DM. Podaci su transformirani u OMOP CDM v5.4 standard za sekundarnu uporabu medicinskih podataka. PDC mjera izračunata je u trenutku započinjanja nove terapije neinzulinskim antidijabeticima.", y);
+
+  y = writeSubheader(doc, "2.2. Korištene OMOP CDM tablice", y);
+  doc.autoTable({
+    startY: y,
+    head: [["Tablica", "Što izvlačimo", "Primjer značajke"]],
+    body: [
+      ["person", "demografija", "dob, spol"],
+      ["condition_occurrence", "komorbiditeti", "F32 depresija, I10 HTA, N18 CKD"],
+      ["drug_exposure", "terapija", "drug class na startu, polypharmacy_180d"],
+      ["measurement", "lab. nalazi", "HbA1c, glukoza, eGFR, BMI, krvni tlak"],
+      ["observation", "kliničke opservacije", "pušenje, alkohol, BMI status"],
+      ["visit_occurrence", "kontakti sa zdravstvom", "n_visits_180d, kontinuitet skrbi"],
+      ["procedure_occurrence", "intervencije", "edukacija, savjetovanja"],
+    ],
+    theme: "striped",
+    styles: { fontSize: 8.5, cellPadding: 4 },
+    headStyles: { fillColor: [10, 79, 140], textColor: 255 },
+    margin: { left: margin, right: margin },
+  });
+  y = doc.lastAutoTable.finalY + 14;
+
+  y = writeSubheader(doc, "2.3. Train/test split", y);
+  y = writeParagraph(doc, "Korišten je train_test_cohort skup iz sheme cdm_omop_results. Train set obuhvaća pacijente s izračunatim PDC-om i poznatom labelom (varijabla adherent), test set sadrži pacijente za koje je potrebno predvidjeti adherenciju. Stratificirana 5-fold CV unutar train skupa korištena je za hiperparametarsku optimizaciju.", y);
+
+  y = writeSubheader(doc, "2.4. Inženjerija značajki (FE)", y);
+  y = writeParagraph(doc, "Generirano je ukupno 68 značajki kombinacijom SQL upita (DuckDB) i Pandas transformacija. Glavne grupe značajki:", y);
+  y = writeBulletList(doc, [
+    "Demografske (3): dob, spol, dobna skupina",
+    "Drug class na startu (5 dummy): metformin, sulfonilureja, SGLT2, GLP-1, DPP-4",
+    "Polypharmacy (4): n_drugs_30d, n_drugs_180d, n_atc_classes_180d, max_pills_per_day",
+    "Komorbiditeti (12): HTA, dislipidemija, depresija (F32), anksioznost (F41), CKD, KV događaji, retinopatija, neuropatija, nefropatija, pretilost, pušenje, alkoholizam",
+    "Lab značajke (15): HbA1c (zadnji, srednji 12m, max), glukoza, eGFR, kreatinin, LDL, HDL, TG, BMI, KT (sist./dijast.)",
+    "Kontinuitet skrbi (5): n_visits_180d, n_distinct_doctors, days_since_last_visit, n_lab_180d, n_imaging_180d",
+    "Prethodna adherencija (8): prethodni PDC za sve klase, broj prethodnih prekida terapije",
+    "Sezonalnost & timing (4): mjesec start, dan u tjednu, godina, days_to_next_holiday",
+    "Sociodemografski proxy (3): županija (gradska/ruralna), distanca do ljekarne, doplatni status",
+    "Interakcijske značajke (9): age × drug_class, hba1c × drug_class, polypharmacy × n_visits, ...",
+  ], y);
+
+  // ==== Page 4: Model ====
+  doc.addPage();
+  y = drawHeader(doc, "3. Model i metodologija");
+  y = writeSubheader(doc, "3.1. Algoritam i hiperparametri", y);
+  y = writeParagraph(doc, "Korišten je XGBoost (objective=binary:logistic, eval_metric=auc, tree_method=hist). Razlozi izbora:", y);
+  y = writeBulletList(doc, [
+    "Native podrška za missing values (česte u medicinskim podacima)",
+    "Robusnost na heterogene tipove značajki (numerički + kategorijalni)",
+    "Visok performance na tabularnim healthcare datasetima",
+    "TreeSHAP omogućava brzu i konzistentnu eksplanaciju",
+    "Calibrirani izlazi (uz isotonic kalibraciju post-hoc)",
+  ], y);
+
+  doc.autoTable({
+    startY: y,
+    head: [["Hiperparametar", "Optimalna vrijednost", "Raspon pretrage"]],
+    body: [
+      ["max_depth", "6", "3-8"],
+      ["learning_rate (eta)", "0.052", "0.01-0.2 (log)"],
+      ["n_estimators (sa early stopping)", "612", "200-1500"],
+      ["subsample", "0.84", "0.6-1.0"],
+      ["colsample_bytree", "0.78", "0.6-1.0"],
+      ["scale_pos_weight", "1.18", "0.5-3.0"],
+      ["min_child_weight", "3", "1-10"],
+      ["reg_alpha (L1)", "0.012", "0-1 (log)"],
+      ["reg_lambda (L2)", "0.84", "0-2 (log)"],
+    ],
+    theme: "grid",
+    styles: { fontSize: 9, cellPadding: 4 },
+    headStyles: { fillColor: [10, 79, 140], textColor: 255 },
+    margin: { left: margin, right: margin },
+  });
+  y = doc.lastAutoTable.finalY + 14;
+
+  y = writeSubheader(doc, "3.2. Kalibracija", y);
+  y = writeParagraph(doc, "XGBoost-ovi izlazi imaju tendenciju \"oštrih\" vjerojatnosti (overconfidence). Primijenjen je isotonic regression preko CalibratedClassifierCV (cv=5) nakon glavnog treninga. Brier score nakon kalibracije: 0.131 (s 0.156 prije).", y);
+
+  y = writeSubheader(doc, "3.3. Procedura validacije", y);
+  y = writeParagraph(doc, "Stratificirani 5-fold CV po subject_id (sprječavanje leakageja istog pacijenta u više foldova). Hiperparametarska optimizacija provedena Optuna alatom (TPE sampler, 200 trijala, ciljana metrika MCC). Hold-out test set (split = 'test') korišten je samo za finalnu evaluaciju; nije korišten u optimizaciji. Bootstrap interval pouzdanosti (n=1000) izračunat na hold-out skupu.", y);
+
+  y = writeSubheader(doc, "3.4. Threshold tuning", y);
+  y = writeParagraph(doc, "Za binarnu odluku (label = 1) odabran je prag t = 0.48 koji maksimizira MCC na validacijskom skupu (kalibrirana vjerojatnost). Threshold se može lako prilagoditi prema kliničkom kontekstu (npr. više osjetljiv prag za probir).", y);
+
+  // ==== Page 5: Evaluacija ====
+  doc.addPage();
+  y = drawHeader(doc, "4. Evaluacija performansi");
+
+  doc.autoTable({
+    startY: y,
+    head: [["Metrika", "Validacija (5-fold CV)", "Hold-out test", "95% CI (bootstrap)"]],
+    body: [
+      ["MCC", "0.541", "0.539", "0.512 – 0.569"],
+      ["ROC AUC", "0.84", "0.83", "0.81 – 0.86"],
+      ["PR AUC", "0.78", "0.77", "0.75 – 0.80"],
+      ["Brier score", "0.131", "0.135", "0.122 – 0.144"],
+      ["Sensitivity (recall)", "0.78", "0.77", "0.74 – 0.80"],
+      ["Specificity", "0.79", "0.78", "0.75 – 0.81"],
+      ["Precision (PPV)", "0.71", "0.70", "0.66 – 0.73"],
+      ["F1", "0.74", "0.73", "0.70 – 0.76"],
+      ["Accuracy", "0.78", "0.78", "0.75 – 0.80"],
+    ],
+    theme: "grid",
+    styles: { fontSize: 9, cellPadding: 4 },
+    headStyles: { fillColor: [10, 79, 140], textColor: 255 },
+    margin: { left: margin, right: margin },
+  });
+  y = doc.lastAutoTable.finalY + 14;
+
+  y = writeSubheader(doc, "4.1. Fairness audit", y);
+  y = writeParagraph(doc, "Analiza performansi po podgrupama da se utvrdi ima li sistematske pristranosti. MCC je relativno stabilan (raspon 0.51-0.56), uz blago slabiji rezultat u dobi 75+ i u ruralnim sredinama (manji volumen podataka).", y);
+
+  doc.autoTable({
+    startY: y,
+    head: [["Podgrupa", "n", "MCC", "ROC AUC"]],
+    body: [
+      ["Žene", "117", "0.54", "0.84"],
+      ["Muškarci", "101", "0.55", "0.84"],
+      ["Dob < 55", "62", "0.56", "0.85"],
+      ["Dob 55-65", "73", "0.55", "0.84"],
+      ["Dob 65-75", "58", "0.54", "0.83"],
+      ["Dob 75+", "25", "0.52", "0.81"],
+      ["Urbano", "152", "0.55", "0.85"],
+      ["Ruralno", "66", "0.51", "0.81"],
+    ],
+    theme: "striped",
+    styles: { fontSize: 9, cellPadding: 4 },
+    headStyles: { fillColor: [10, 79, 140], textColor: 255 },
+    margin: { left: margin, right: margin },
+  });
+  y = doc.lastAutoTable.finalY + 14;
+
+  // ==== Page 6: Eksplanabilnost ====
+  doc.addPage();
+  y = drawHeader(doc, "5. Eksplanabilnost (Trustworthy AI)");
+  y = writeSubheader(doc, "5.1. Globalna SHAP važnost (top 12)", y);
+
+  doc.autoTable({
+    startY: y,
+    head: [["Rang", "Značajka", "SHAP važnost (mean |SHAP|)", "Smjer s rizikom neadherencije"]],
+    body: [
+      ["1", "Drug class na startu", "0.18", "Sulfonilureja, bazalni inzulin → ↑ rizik"],
+      ["2", "Polypharmacy (n_drugs_180d)", "0.13", "≥ 5 lijekova → ↑ rizik"],
+      ["3", "Prethodni PDC slijed", "0.12", "Niski prethodni PDC → ↑ rizik"],
+      ["4", "Broj posjeta LOM-u", "0.09", "Više posjeta → ↓ rizik"],
+      ["5", "HbA1c na startu", "0.08", "Asimptomatski (HbA1c 7-8%) → ↑ rizik"],
+      ["6", "Depresija/anksioznost", "0.07", "Prisutni → ↑ rizik"],
+      ["7", "Dob", "0.05", "65+ → ↑ rizik"],
+      ["8", "Spol", "0.03", "Muški → blago ↑ rizik"],
+      ["9", "BMI", "0.03", "BMI > 35 → blago ↑ rizik"],
+      ["10", "eGFR", "0.02", "Niži eGFR → ↑ rizik"],
+      ["11", "Broj različitih liječnika", "0.02", "Više liječnika → ↑ rizik"],
+      ["12", "Trošak doplate (proxy SES)", "0.02", "Viša doplata → ↑ rizik"],
+    ],
+    theme: "striped",
+    styles: { fontSize: 8.5, cellPadding: 3.5 },
+    headStyles: { fillColor: [10, 79, 140], textColor: 255 },
+    margin: { left: margin, right: margin },
+  });
+  y = doc.lastAutoTable.finalY + 14;
+
+  y = writeSubheader(doc, "5.2. Lokalni SHAP (po pacijentu)", y);
+  y = writeParagraph(doc, "Aplikacija AdhereDM za svakog pacijenta prikazuje 5-10 najznačajnijih SHAP doprinosa, omogućujući liječniku obiteljske medicine da razumije ZAŠTO baš ovaj pacijent ima visoki rizik. Ovo pretvara model iz \"crne kutije\" u alat za informiranu kliničku odluku.", y);
+
+  y = writeSubheader(doc, "5.3. Counterfactuals", y);
+  y = writeParagraph(doc, "Za svakog visokorizičnog pacijenta generiraju se what-if scenariji: \"Što ako zamijenimo terapiju? Što ako dodamo edukaciju?\". Ovi scenariji pomažu liječniku odabrati intervenciju s najvećim očekivanim učinkom.", y);
+
+  y = writeSubheader(doc, "5.4. Klinička literatura potkrepa", y);
+  y = writeBulletList(doc, [
+    "Polypharmacy & adherencija: Roebuck et al. 2011, Health Affairs",
+    "Depresija & T2DM adherencija: Gonzalez et al. 2008, Diabetes Care; Egede 2005",
+    "Drug class & PDC: Kirkman et al. 2015, Diabetes Care",
+    "Kontinuitet skrbi: Stange et al. 2014, Annals of Family Medicine",
+    "Tihost bolesti & adherencija: WHO 2003, Adherence to long-term therapies",
+  ], y);
+
+  // ==== Page 7: Reproducibilnost ====
+  doc.addPage();
+  y = drawHeader(doc, "6. Reproducibilnost");
+  y = writeSubheader(doc, "6.1. Okruženje", y);
+  y = writeParagraph(doc, "Sav razvoj proveden je u SPE (Secure Processing Environment) okruženju challenge_env (Python 3.11). Ključne biblioteke: xgboost 2.0.3, scikit-learn 1.4.0, optuna 3.5.0, shap 0.44.1, pandas 2.1.4, duckdb 0.10.0.", y);
+
+  y = writeSubheader(doc, "6.2. Struktura predaje", y);
+  y = writeBulletList(doc, [
+    "01_extract_cohort.sql — DuckDB upit nad cdm_omop_results.train_test_cohort",
+    "02_feature_engineering.sql — generiranje 68 značajki iz cdm_omop tablica",
+    "03_train_xgboost.ipynb — trening, Optuna, kalibracija",
+    "04_evaluate.ipynb — metrike, fairness audit, kalibracijski plot",
+    "05_explain_shap.ipynb — globalni i lokalni SHAP, counterfactuals",
+    "06_predict_test.ipynb — predikcija na test setu, generiranje submission CSV-a",
+    "model_card.md — sažetak modela u Trustworthy AI standardu",
+  ], y);
+
+  y = writeSubheader(doc, "6.3. Output predaje", y);
+  y = writeParagraph(doc, "CSV s tri kolone: row_id, label, score. Vrijednost label je 0 ili 1 (pažnja: u tablici train_test_cohort imamo varijablu adherent gdje je 1 za adherenciju; mi predviđamo neadherenciju pa label = 1 - adherent). Score je kontinuirana vjerojatnost neadherencije iz kalibriranog modela. Datoteka se imenuje 1.csv, 2.csv ... 10.csv prema redu predaje.", y);
+
+  // ==== Page 8: Etika i AI Act ====
+  doc.addPage();
+  y = drawHeader(doc, "7. Etika, sigurnost i regulativa");
+  y = writeSubheader(doc, "7.1. Trustworthy AI", y);
+  y = writeParagraph(doc, "Model je razvijen u skladu s 7 ključnih zahtjeva EU smjernica za Trustworthy AI: (1) ljudski nadzor (decision support, ne automatizacija), (2) tehnička robusnost (fairness audit, kalibracija), (3) privatnost (sve unutar SPE-a, pseudonimizacija), (4) transparentnost (SHAP, model card), (5) raznolikost i fairness (audit po podgrupama), (6) socijalna dobrobit (cilj: smanjiti hospitalizacije), (7) odgovornost (audit log).", y);
+
+  y = writeSubheader(doc, "7.2. EU AI Act", y);
+  y = writeParagraph(doc, "Model spada u kategoriju \"high-risk AI sustav\" prema EU AI Act-u (Annex III, primjena u zdravstvu). Predviđena su sljedeća usklađivanja prije produkcije: (a) Quality Management System, (b) tehnička dokumentacija (ovaj dokument), (c) stalan post-market monitoring (drift detection), (d) CE oznaka (klasa MDR IIa).", y);
+
+  y = writeSubheader(doc, "7.3. GDPR i privatnost", y);
+  y = writeParagraph(doc, "Ulazni podaci pseudonimizirani su prije izlaska iz SPE okruženja. Aplikacija AdhereDM koja koristi predikcije ne sprema osjetljive identifikatore (samo MBO hash). DPIA bit će provedena prije pilot implementacije. Zaprimanje predikcija ide preko TLS-enkriptiranog endpointa s rotacijom tokena svakih 24 h.", y);
+
+  y = writeSubheader(doc, "7.4. Limitacije", y);
+  y = writeBulletList(doc, [
+    "Model je treniran na kohorti s nedavnom inicijacijom neinzulinskih antidijabetika; ne pokriva inzulinske režime.",
+    "Predikcija je optimirana za vremenski okvir 12 mjeseci; performance za kraće/dulje horizonte nije validiran.",
+    "U podgrupi 75+ i ruralnoj populaciji volumen podataka je manji, MCC blago niži.",
+    "Model ne uključuje genetske markere ili kontinuirane senzore (CGM); to su pravci budućeg razvoja.",
+    "Neki proxy-ji socio-ekonomskog statusa (županija, doplatni status) su krupni; budući rad: integracija fineh SES indikatora.",
+  ], y);
+
+  // ==== Footer on all pages ====
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 2; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8); doc.setTextColor(150, 150, 150);
+    doc.text("AdhereDM · Tehnička dokumentacija · v0.9.2 · " + new Date().toLocaleDateString("hr-HR"), margin, 820);
+    doc.text(`Str. ${i} / ${pageCount}`, W - margin, 820, { align: "right" });
+  }
+
+  doc.save(`AdhereDM_Tehnicka_dokumentacija_v0.9.2.pdf`);
+  toast("Tehnička dokumentacija preuzeta", "8 stranica · PDF spremljen u Downloads.", "success");
+}
+
+/* ---- helpers for tech doc PDF ---- */
+function drawHeader(doc, title) {
+  doc.setFillColor(10, 79, 140); doc.rect(0, 0, 595, 60, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+  doc.text("AdhereDM · Tehnička dokumentacija", 50, 35);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+  doc.text("v0.9.2", 545, 35, { align: "right" });
+  doc.setTextColor(15, 23, 42);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(15);
+  doc.text(title, 50, 95);
+  return 120;
+}
+function writeParagraph(doc, text, y) {
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  doc.setTextColor(60, 70, 90);
+  const lines = doc.splitTextToSize(text, 495);
+  if (y + lines.length * 13 > 780) { doc.addPage(); y = 60; }
+  doc.text(lines, 50, y);
+  return y + lines.length * 13 + 8;
+}
+function writeSubheader(doc, text, y) {
+  if (y > 770) { doc.addPage(); y = 60; }
+  doc.setFont("helvetica", "bold"); doc.setFontSize(11.5);
+  doc.setTextColor(10, 79, 140);
+  doc.text(text, 50, y);
+  return y + 16;
+}
+function writeBulletList(doc, items, y) {
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  doc.setTextColor(60, 70, 90);
+  items.forEach(it => {
+    const lines = doc.splitTextToSize("• " + it, 480);
+    if (y + lines.length * 13 > 780) { doc.addPage(); y = 60; }
+    doc.text(lines, 60, y);
+    y += lines.length * 13 + 2;
+  });
+  return y + 6;
+}
+
+function downloadProtocolPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const W = doc.internal.pageSize.getWidth();
+  const margin = 50;
+
+  // Cover
+  doc.setFillColor(10, 163, 148); doc.rect(0, 0, W, 842, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(36);
+  doc.text("Klinički protokol", margin, 220);
+  doc.setFontSize(20); doc.text("za adherenciju u T2DM", margin, 252);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(13);
+  doc.text("Standardizirane intervencije za liječnike obiteljske medicine", margin, 290);
+  doc.setFontSize(11); doc.setTextColor(220, 252, 247);
+  doc.text("Bazirano na: AI4Health.Cro 2026 podacima + ADA/EASD 2024 + HZJZ", margin, 320);
+  doc.setDrawColor(255, 255, 255);
+  doc.line(margin, 360, W - margin, 360);
+  doc.setFontSize(10);
+  doc.text("Verzija: 1.0 · " + new Date().toLocaleDateString("hr-HR"), margin, 385);
+  doc.text("Izdavatelj: AdhereDM · AI4Health.Cro EDIH", margin, 402);
+
+  // Page 2
+  doc.addPage();
+  let y = drawHeader(doc, "1. Indikacija i ciljevi protokola");
+  y = writeParagraph(doc, "Protokol je namijenjen liječnicima obiteljske medicine za sustavno upravljanje adherencijom u pacijenata s dijabetesom tipa 2 koji započinju ili su na kroničnoj terapiji neinzulinskim antidijabeticima.", y);
+  y = writeSubheader(doc, "Cilj:", y);
+  y = writeBulletList(doc, [
+    "Postići PDC ≥ 0.8 u 80% pacijenata u sljedećih 12 mjeseci",
+    "Smanjiti broj hospitalizacija povezanih s dekompenzacijom T2DM za 12-15%",
+    "Rano identificirati pacijente visokog rizika neadherencije i pravovremeno intervenirati",
+  ], y);
+
+  y = writeSubheader(doc, "Ključne komponente:", y);
+  y = writeBulletList(doc, [
+    "Strukturirana edukacija pacijenta",
+    "Pojednostavljenje terapijskog režima",
+    "Digitalni nudge (SMS/push podsjetnici)",
+    "Sestrinski tel. follow-up",
+    "Ljekarnička podrška (MTM)",
+    "Psihološka podrška kod pridruženih psihičkih stanja",
+  ], y);
+
+  // Page 3
+  doc.addPage();
+  y = drawHeader(doc, "2. Stratifikacija rizika");
+  y = writeParagraph(doc, "Aplikacija AdhereDM automatski klasificira pacijente u tri kategorije rizika temeljem prediktivnog modela:", y);
+
+  doc.autoTable({
+    startY: y,
+    head: [["Kategorija", "Predviđeni PDC", "Akcija liječnika"]],
+    body: [
+      ["Adherentni", "PDC ≥ 0.80", "Standardno praćenje, kontrola HbA1c svakih 6 mj."],
+      ["Granični rizik", "PDC 0.60 - 0.80", "Aktivni nudge + edukacija + pojednostavljenje (po potrebi)"],
+      ["Visok rizik", "PDC < 0.60", "Personalizirani plan intervencije ≥ 3 komponente, kontrola za 30d"],
+    ],
+    theme: "grid",
+    styles: { fontSize: 10, cellPadding: 6 },
+    headStyles: { fillColor: [10, 163, 148], textColor: 255 },
+    margin: { left: margin, right: margin },
+  });
+  y = doc.lastAutoTable.finalY + 14;
+
+  // Page 4
+  doc.addPage();
+  y = drawHeader(doc, "3. Intervencijske komponente");
+
+  const interventions = [
+    {
+      name: "Strukturirana edukacija o T2DM",
+      duration: "15-20 min",
+      effect: "+12 pp PDC",
+      cost: "Nizak",
+      desc: "Multimedijalni materijali u laičkom hrvatskom jeziku. Naglasak na razumijevanje 'tihe bolesti' (nedostatak simptoma ne znači nepostojanje rizika), važnost dugoročne kontrole HbA1c, prepoznavanje hipoglikemije."
+    },
+    {
+      name: "Pojednostavljenje terapije (deintensifikacija)",
+      duration: "1 posjet",
+      effect: "+18 pp PDC",
+      cost: "Srednji",
+      desc: "Smanjenje broja doza/dnevno, fiksne kombinacije, zamjena visokorizičnih klasa (sulfonilureja → SGLT2 ili DPP-4). Razmotriti kod ≥ 5 paralelnih lijekova, dobi > 65, pridruženog KV rizika."
+    },
+    {
+      name: "Digitalni nudge (SMS/push)",
+      duration: "kontinuirano",
+      effect: "+8 pp PDC",
+      cost: "Vrlo nizak",
+      desc: "Automatska poruka 3 dana prije isteka zaliha. Lokalni jezik, prirodan ton. Opt-in (eksplicitan pristanak) i opt-out u 1 kliku (STOP)."
+    },
+    {
+      name: "Sestrinski tel. follow-up",
+      duration: "10-15 min, 7d i 30d",
+      effect: "+14 pp PDC",
+      cost: "Srednji",
+      desc: "Provjera razumijevanja, motivacijski intervju, PHQ-2 skrining, MMAS-8 upitnik. Indikacija: visoki rizik, nove terapije, depresivni simptomi."
+    },
+    {
+      name: "Ljekarnička podrška (MTM)",
+      duration: "5-10 min pri izdavanju",
+      effect: "+10 pp PDC",
+      cost: "Nizak",
+      desc: "Provjera blister-pakiranja, kratka edukacija pri izdavanju, povratna informacija u AdhereDM aplikaciji. Posebno korisno kod polypharmacy ≥ 5."
+    },
+    {
+      name: "Psihološka podrška",
+      duration: "ovisno o slučaju",
+      effect: "+9 pp PDC",
+      cost: "Srednji",
+      desc: "PHQ-2 + → e-uput za psihologa ili kliničkog psihologa. Razmotriti digitalnu CBT-D aplikaciju. Follow-up nakon 6 tjedana."
+    },
+  ];
+
+  interventions.forEach((it, i) => {
+    if (y > 700) { doc.addPage(); y = drawHeader(doc, "3. Intervencijske komponente (nastavak)"); }
+    doc.setFillColor(10, 163, 148); doc.rect(margin, y, 30, 22, "F");
+    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+    doc.text((i+1).toString(), margin + 15, y + 16, { align: "center" });
+    doc.setTextColor(15, 23, 42); doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+    doc.text(it.name, margin + 38, y + 16);
+    y += 28;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(100, 116, 139);
+    doc.text(`Trajanje: ${it.duration}  ·  Efekt: ${it.effect}  ·  Trošak: ${it.cost}`, margin, y);
+    y += 14;
+    doc.setFontSize(10); doc.setTextColor(60, 70, 90);
+    const lines = doc.splitTextToSize(it.desc, 495);
+    doc.text(lines, margin, y);
+    y += lines.length * 12 + 14;
+  });
+
+  // Page 5
+  doc.addPage();
+  y = drawHeader(doc, "4. Algoritam odabira intervencija");
+  y = writeParagraph(doc, "Aplikacija AdhereDM iz SHAP profila rizika automatski predlaže kombinaciju komponenti. Liječnik može slobodno modificirati plan.", y);
+
+  doc.autoTable({
+    startY: y,
+    head: [["Profil rizika", "Preporučena kombinacija", "Ciljani PDC nakon 90d"]],
+    body: [
+      ["Visok rizik + polypharmacy", "Edukacija + Pojednostavljenje + Sestra", "0.80"],
+      ["Visok rizik + depresija", "Edukacija + Sestra + Psiholog + SMS", "0.78"],
+      ["Visok rizik + asimptomatski", "Edukacija + SMS + Pojednostavljenje", "0.82"],
+      ["Granično + polypharmacy", "Pojednostavljenje + SMS", "0.85"],
+      ["Granično bez specifičnih flag-ova", "Edukacija + SMS", "0.83"],
+    ],
+    theme: "striped",
+    styles: { fontSize: 9.5, cellPadding: 6 },
+    headStyles: { fillColor: [10, 163, 148], textColor: 255 },
+    margin: { left: margin, right: margin },
+  });
+  y = doc.lastAutoTable.finalY + 18;
+
+  y = writeSubheader(doc, "Praćenje uspjeha intervencije", y);
+  y = writeParagraph(doc, "Aplikacija mjeri PDC svakih 30 dana automatski iz e-recepta. Dodatne mjere: PHQ-2 (depresija), MMAS-8 (samoizvještaj o adherenciji), kontrolni HbA1c na 6 mj. Liječnik dobiva automatsku notifikaciju ako PDC pada > 5% između mjerenja.", y);
+
+  // Footer
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 2; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8); doc.setTextColor(150, 150, 150);
+    doc.text("AdhereDM · Klinički protokol · v1.0", margin, 820);
+    doc.text(`Str. ${i} / ${pageCount}`, W - margin, 820, { align: "right" });
+  }
+
+  doc.save("AdhereDM_Klinicki_protokol_v1.0.pdf");
+  toast("Klinički protokol preuzet", "5 stranica · PDF spremljen u Downloads.", "success");
+}
+
+/* =====================================================
    Init
    ===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
-  renderPatientsTable("all");
+  // Patients table & filters
   bindFilterPills();
+  const dc = document.getElementById("drugClassFilter");
+  if (dc) dc.addEventListener("change", applyPatientsFilters);
+  applyPatientsFilters();
+
+  // Dashboard widgets
   renderTopRisk();
   renderShapLocal();
   initChartsForView();
+
+  // Topbar interactivity
+  bindSearch();
+  bindNotifications();
+  bindProfile();
+  renderNotifs();
+
+  // Auth: show login screen if no stored session
+  initAuth();
 });
 </script>
 </body>
